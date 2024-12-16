@@ -1,0 +1,42 @@
+name: reports
+replicas: 1
+containerPort: 12211
+image: digit9acr.azurecr.io/cbaas-blu-reports
+tag: prd-snapshot
+memoryRequest: 256Mi
+cpuRequest: 10m
+memoryLimit: 1024Mi
+cpuLimit: 1000m
+namespace: cbaas-prd-blu
+nodeSelectorLabel: "digit9"
+livenessProbe:
+  initialDelaySeconds: 300
+  periodSeconds: 10
+  failureThreshold: 5
+readinessProbe:
+  initialDelaySeconds: 100
+  periodSeconds: 5
+  failureThreshold: 10
+ENV:
+  - name: SPRING_PROFILES_ACTIVE
+    value: production
+  - name: D9_IDM_URL
+    value: http://idm.cbaas-prd-wht.svc.cluster.local:13250
+  - name: BLU_REFERENCE_DATA_URL
+    value: http://referencedata.cbaas-prd-blu.svc.cluster.local:12050
+  - name: D9_SWAGGER_IDM_URL
+    value: https://digitnine.com/idm/oauth/token
+  - name: DB_URL
+    value: 'jdbc:postgresql://cbaas-db-prd.postgres.database.azure.com:5432'
+  - name: DB_USERNAME
+    value: service_user
+  - name: DB_PASSWORD
+    value: A2s&0yW4DH9i
+  - name: D9_APP_CONTEXT
+    value: /reports/
+  - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+    value: "*"
+  - name: ELASTIC_APM_ENVIRONMENT
+    value: prd
+  - name: ELASTIC_APM_SERVER_URL
+    value: http://apm-server.cbaas-prd-blk.svc.cluster.local:8200

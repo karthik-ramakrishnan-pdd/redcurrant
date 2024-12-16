@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Values.name}}
+  namespace: {{.Values.namespace}}
+spec:
+  replicas: {{.Values.replicas}}
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{.Values.name}}
+  template:
+    metadata:
+      labels:
+        app: {{.Values.name}}
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+      nodeSelector:
+        agentpool: {{.Values.nodeSelectorLabel}}
+      {{- if .Values.tolerations }}
+      tolerations:
+        - effect: NoSchedule
+          key: agentpool
+          value: apiman
+        - effect: NoSchedule
+          key: project
+          value: luluorg
+        - effect: NoSchedule
+          key: agentpool
+          value: luluorg
+        - effect: NoSchedule
+          key: project
+          value: apiman
+        - effect: NoSchedule
+          key: agentpool
+          value: agentpool
+      {{- end }}
+      containers:
+        - name: {{.Values.name}}
+          image: {{.Values.image}}:{{.Values.tag}}
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+              add:
+                - CHOWN
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{.Values.containerPort}}
+            initialDelaySeconds: {{.Values.livenessProbe.initialDelaySeconds}}
+            periodSeconds: {{.Values.livenessProbe.periodSeconds}}
+            failureThreshold: {{.Values.livenessProbe.failureThreshold}}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{.Values.containerPort}}
+            initialDelaySeconds: {{.Values.readinessProbe.initialDelaySeconds}}
+            periodSeconds: {{.Values.readinessProbe.periodSeconds}}
+            failureThreshold: {{.Values.readinessProbe.failureThreshold}}
+          resources:
+            requests:
+              memory: {{.Values.memoryRequest}}
+              cpu: {{.Values.cpuRequest}}
+            limits:
+              memory: {{.Values.memoryLimit}}
+              cpu: {{.Values.cpuLimit}}
+          ports:
+            - containerPort: {{.Values.containerPort}}
+            - containerPort: 52211
+          env:
+            {{- range $env := .Values.ENV }}
+            - name: {{ $env.name }}
+              value: {{ $env.value | quote }}
+            {{- end }}
+            - name: ELASTIC_APM_SERVICE_NAME
+              value: {{ .Values.name }}
+            - name: ELASTIC_APM_APPLICATION_PACKAGES
+              value: "com.digit9"

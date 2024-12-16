@@ -1,0 +1,42 @@
+name: reports
+replicas: 1
+containerPort: 12211
+image: digit9acr.azurecr.io/cbaas-blu-reports 
+tag: stg-snapshot
+memoryRequest: 256Mi
+cpuRequest: 10m
+memoryLimit: 1024Mi
+cpuLimit: 1000m
+namespace: cbaas-stg-blu
+nodeSelectorLabel: "digit9"
+livenessProbe:
+  initialDelaySeconds: 300
+  periodSeconds: 10
+  failureThreshold: 5
+readinessProbe:
+  initialDelaySeconds: 100
+  periodSeconds: 5
+  failureThreshold: 10
+ENV:
+  - name: SPRING_PROFILES_ACTIVE
+    value: staging
+  - name: D9_IDM_URL
+    value: http://idm.cbaas-stg-wht.svc.cluster.local:13250
+  - name: BLU_REFERENCE_DATA_URL
+    value: http://referencedata.cbaas-stg-blu.svc.cluster.local:12050
+  - name: D9_SWAGGER_IDM_URL
+    value: https://stg.digitnine.com/idm/oauth/token
+  - name: DB_URL
+    value: 'jdbc:postgresql://postgres-db.cbaas-stg-blk.svc.cluster.local:5432'
+  - name: DB_USERNAME
+    value: service_user
+  - name: DB_PASSWORD
+    value: 47h9c6Pz4!ts
+  - name: D9_APP_CONTEXT
+    value: /reports/
+  - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+    value: "*"
+  - name: ELASTIC_APM_ENVIRONMENT
+    value: stg
+  - name: ELASTIC_APM_SERVER_URL
+    value: http://apm-server.cbaas-stg-blk.svc.cluster.local:8200

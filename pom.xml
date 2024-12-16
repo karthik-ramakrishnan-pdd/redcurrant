@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.digit9.commons</groupId>
+        <artifactId>digit9-starter-parent</artifactId>
+        <version>0.3.4.8-SNAPSHOT</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.digit9.reports</groupId>
+    <artifactId>BLU-Reports</artifactId>
+    <packaging>pom</packaging>
+    <version>${revision}</version>
+
+    <properties>
+        <revision>0.0.1-SNAPSHOT</revision>
+        <java.version>18</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <vladmihalcea.hibernate.types.version>2.18.0</vladmihalcea.hibernate.types.version>
+    </properties>
+
+    <modules>
+        <module>domain</module>
+        <module>application</module>
+        <module>infrastructure</module>
+        <module>launcher</module>
+    </modules>
+
+    <repositories>
+        <repository>
+            <id>digit9</id>
+            <url>https://pkgs.dev.azure.com/digit9/_packaging/digit9/maven/v1</url>
+        </repository>
+    </repositories>
+</project>
