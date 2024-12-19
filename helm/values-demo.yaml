@@ -1,14 +1,14 @@
 name: reports
 replicas: 1
 containerPort: 12211
-image: digit9acr.azurecr.io/cbaas-blu-reports 
+image: luluorgacr.azurecr.io/cbaas-blu-reports 
 tag: demo-snapshot
 memoryRequest: 256Mi
 cpuRequest: 10m
 memoryLimit: 1024Mi
 cpuLimit: 1000m
 namespace: cbaas-demo-blu
-nodeSelectorLabel: "digit9"
+nodeSelectorLabel: "luluorg"
 livenessProbe:
   initialDelaySeconds: 300
   periodSeconds: 10
