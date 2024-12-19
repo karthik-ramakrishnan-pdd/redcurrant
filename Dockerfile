@@ -1,14 +1,14 @@
 FROM pddccoe/pdd-official-java:openjdk-18-jre
 
 USER root
-RUN adduser --disabled-password digit9
+RUN adduser --disabled-password app
 
-WORKDIR /home/digit9
+WORKDIR /home/app
 
 COPY launcher/target/launcher-*SNAPSHOT.jar launcher.jar
 
-RUN  chown -R digit9 /home/digit9
-USER digit9
+RUN  chown -R app /home/app
+USER app
 RUN chmod +x launcher.jar
 
 ENTRYPOINT ["java", "-jar", "launcher.jar"]
