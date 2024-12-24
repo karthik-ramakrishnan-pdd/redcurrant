@@ -16,35 +16,45 @@
 
         <!-- Spring Properties -->
         <spring-boot.version>3.4.1</spring-boot.version>
-        <spring-security.version>6.4.2</spring-security.version>
         <spring-cloud.version>2021.0.8</spring-cloud.version>
+        <spring-security.version>6.4.2</spring-security.version>
 
         <!-- Dependency Versions -->
-        <jackson-bom.version>2.15.2</jackson-bom.version>
-        <solace-spring-boot.version>5.2.0</solace-spring-boot.version>
-        <mysql.version>8.4.0</mysql.version>
         <apache-commons.version>3.17.0</apache-commons.version>
+        <archunit-junit5.version>1.3.0</archunit-junit5.version>
+        <jackson-bom.version>2.15.2</jackson-bom.version>
         <lombok.version>1.18.36</lombok.version>
         <swagger.version>2.2.27</swagger.version>
+        <solace-spring-boot.version>5.2.0</solace-spring-boot.version>
+
+        <!-- DB Integration -->
+        <mysql.version>8.4.0</mysql.version>
         <hibernate.version>6.6.3.Final</hibernate.version>
-        <archunit-junit5.version>1.3.0</archunit-junit5.version>
-        <springdoc-openapi.version>1.8.0</springdoc-openapi.version>
+
+        <!-- Jakarta Validation -->
+        <jakarta-validation.version>3.1.0</jakarta-validation.version>
+        <jakarta.version>6.1.0</jakarta.version>
 
         <!-- MapStruct Properties -->
-        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
-        <org.mapstruct.lombok.binding.version>0.2.0</org.mapstruct.lombok.binding.version>
         <org.mapstruct.extensions.spring.version>1.1.0</org.mapstruct.extensions.spring.version>
+        <org.mapstruct.lombok.binding.version>0.2.0</org.mapstruct.lombok.binding.version>
+        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+
+        <!-- Logging Validation -->
+        <slf4j.version>2.0.16</slf4j.version>
+        <logback.version>1.5.15</logback.version>
+
+        <!-- SpringDoc OpenAPI -->
+        <springdoc-openapi-starter.version>2.7.0</springdoc-openapi-starter.version>
+        <springdoc-openapi.version>1.8.0</springdoc-openapi.version>
 
         <!-- Maven Compiler Properties -->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <!-- Spring JavaFormat and Checkstyle Properties -->
-        <spring-javaformat-checkstyle.version>0.0.42</spring-javaformat-checkstyle.version>
+        <!-- Spring JavaFormat and Checkstyle -->
         <maven-checkstyle.version>3.4.0</maven-checkstyle.version>
-
-        <!-- Jakarta Validation -->
-        <jakarta-validation.version>3.1.0</jakarta-validation.version>
+        <spring-javaformat-checkstyle.version>0.0.42</spring-javaformat-checkstyle.version>
     </properties>
 
     <modules>
@@ -141,18 +151,6 @@
                 <version>${jackson-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <!-- Springdoc OpenAPI Dependencies -->
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-ui</artifactId>
-                <version>${springdoc-openapi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-security</artifactId>
-                <version>${springdoc-openapi.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
