@@ -3,37 +3,161 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.digit9.commons</groupId>
-        <artifactId>digit9-starter-parent</artifactId>
-        <version>0.3.4.8-SNAPSHOT</version>
-        <relativePath/>
-    </parent>
 
-    <groupId>com.digit9.reports</groupId>
-    <artifactId>BLU-Reports</artifactId>
+    <groupId>com.pdd.redcurrant</groupId>
+    <artifactId>redcurrant-platform</artifactId>
     <packaging>pom</packaging>
     <version>${revision}</version>
 
     <properties>
+        <!-- General Properties -->
         <revision>0.0.1-SNAPSHOT</revision>
-        <java.version>18</java.version>
+        <java.version>21</java.version>
+
+        <!-- Spring Properties -->
+        <spring-boot.version>3.4.1</spring-boot.version>
+        <spring-security.version>6.4.2</spring-security.version>
+        <spring-cloud.version>2021.0.8</spring-cloud.version>
+
+        <!-- Dependency Versions -->
+        <jackson-bom.version>2.15.2</jackson-bom.version>
+        <solace-spring-boot.version>5.2.0</solace-spring-boot.version>
+        <mysql.version>8.4.0</mysql.version>
+        <apache-commons.version>3.17.0</apache-commons.version>
+        <lombok.version>1.18.36</lombok.version>
+        <swagger.version>2.2.27</swagger.version>
+        <hibernate.version>6.6.3.Final</hibernate.version>
+        <archunit-junit5.version>1.3.0</archunit-junit5.version>
+        <springdoc-openapi.version>1.8.0</springdoc-openapi.version>
+
+        <!-- MapStruct Properties -->
+        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+        <org.mapstruct.lombok.binding.version>0.2.0</org.mapstruct.lombok.binding.version>
+        <org.mapstruct.extensions.spring.version>1.1.0</org.mapstruct.extensions.spring.version>
+
+        <!-- Maven Compiler Properties -->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <vladmihalcea.hibernate.types.version>2.18.0</vladmihalcea.hibernate.types.version>
+
+        <!-- Spring JavaFormat and Checkstyle Properties -->
+        <spring-javaformat-checkstyle.version>0.0.42</spring-javaformat-checkstyle.version>
+        <maven-checkstyle.version>3.4.0</maven-checkstyle.version>
+
+        <!-- Jakarta Validation -->
+        <jakarta-validation.version>3.1.0</jakarta-validation.version>
     </properties>
 
     <modules>
-        <module>domain</module>
         <module>application</module>
+        <module>domain</module>
         <module>infrastructure</module>
         <module>launcher</module>
     </modules>
 
+    <dependencies>
+        <!-- Spring Boot Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-client</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+
+        <!-- Apache Commons Dependencies -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${apache-commons.version}</version>
+        </dependency>
+
+        <!-- Hibernate Dependencies -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-jpamodelgen</artifactId>
+        </dependency>
+
+        <!-- Lombok Dependencies -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+        </dependency>
+
+        <!-- MapStruct Dependencies -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${org.mapstruct.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${org.mapstruct.version}</version>
+        </dependency>
+
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit-junit5.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot BOM -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Jackson BOM -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Springdoc OpenAPI Dependencies -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-ui</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-security</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <repositories>
-        <repository>
-            <id>digit9</id>
-            <url>https://pkgs.dev.azure.com/digit9/_packaging/digit9/maven/v1</url>
-        </repository>
+        <!-- Commented optional repositories -->
     </repositories>
 </project>

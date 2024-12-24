@@ -1,96 +1,131 @@
-# BLU Reports Service
 
-## Project
+# Redcurrant Platform
 
-### Structure
+## Overview
 
-The project is designed using the multi-module approach and has the following modules:
-- 'application'
-- 'domain'
-- 'infrastructure'
-- 'launcher'
+**Redcurrant Platform** is a multi-module Spring Boot application implementing the **Hexagonal Architecture**. It provides a clean separation between business logic, infrastructure, and application logic, allowing extensibility, scalability, and easier testing.
 
-Each module encapsulates logic specific to the hexagonal architecture layers.
+---
+
+## Project Structure
+
+The project uses a **multi-module** approach with the following layers:
+
+```
+redcurrant-platform/
+├── application/      # REST Controllers and orchestration logic
+├── domain/           # Business logic, APIs, and SPIs
+├── infrastructure/   # Database and external system interactions
+└── launcher/         # Main entry point and Spring configurations
+```
 
 ### Design
 
-The application uses as design pattern the hexagonal architecture pattern.
+The application follows the **Hexagonal Architecture**:
 
-#### 1. Domain
+- **Domain**: Core business logic, ports (APIs, SPIs), and services.
+- **Application**: REST Controllers exposing endpoints for interaction.
+- **Infrastructure**: Adapters and repositories for interacting with the database.
+- **Launcher**: Starts the application and declares configuration beans.
 
-The domain layer is the core of the application and is isolated from both the application and the infrastructure layers.
-This layer contains the data, ports and services used to implement the business logic.
+---
 
-To allow the outside to interact with the domain, the hexagon provides business interfaces (ports) divided into two categories:
-- The API - which gathers the interfaces for everything that needs to query the domain.
-- The SPI - which gathers the interfaces required by the domain to retrieve information from third parties.
+## Prerequisites
 
-Since the domain layer is completely decoupled from application and infrastructure layers, it is also tested independently.
+1. **Java**: 21+
+2. **Maven**: 3.9.9
+3. **MySQL**: 8.4.0 (local setup)
+4. **Solace**: Messaging broker setup
 
-#### 2. Application
-Through the application layer other programs interact with Report Service.
-It contains REST controllers which are responsible for orchestrating the execution of domain logic.
+---
 
-#### 3. Infrastructure
-The infrastructure layer contains logic needed to interact with the database.
-- The adapters implement the infrastructure-dependent interfaces from the domain layer.
-- The repositories represent the data access services responsible for CRUD operations on the database.
+## Local Development
 
-#### 4. Launcher
-The launcher layer is where the application is started.
-Additionally, it contains configuration classes where the beans are manually declared.
+### Build
 
-## Local development
-One of the following can be used for the build:
-- build with tests
+To build the application:
 
-```mvn clean install```
+- **With tests**:
+  ```sh
+  mvn clean install
+  ```
 
-- build without tests
+- **Without tests**:
+  ```sh
+  mvn clean install -DskipTests=true
+  ```
 
-```mvn clean install -DskipTests=true```
+### Run
 
-Run using Maven
+#### Using Maven
 
-- with **default** Spring profile
+- **Default Profile**:
+  ```sh
+  mvn spring-boot:run
+  ```
 
-```
-mvn spring-boot:run
-```
+- **Custom Profile** (e.g., `local`):
+  ```sh
+  mvn spring-boot:run -Dspring-boot.run.profiles=local
+  ```
 
-- with desired Spring profile
+#### Using IntelliJ IDEA
 
-```
-mvn spring-boot:run -Dspring-boot.run.profiles=local
-```
+- **Default Profile**:
+  ```
+  Edit Configurations -> Add New Configuration -> Spring Boot -> Apply -> Run
+  ```
 
-Run using IntelliJ
+- **Custom Profile**:
+  ```
+  Edit Configurations -> Add New Configuration -> Spring Boot -> Active profiles: local -> Apply -> Run
+  ```
 
-- with **default** Spring profile
-
-```Edit Configurations -> Add New Configuration -> Spring Boot -> Apply -> Run```
-
-- with desired Spring profile
-
-```Edit Configurations -> Add New Configuration -> Spring Boot -> Active profiles: local -> Apply -> Run```
+---
 
 ## Authentication
-The authentication is done through the IDM Service.
 
-## Database migration
-Flyway is used to migrate database scripts. For local dev, use `db.flyway.clean=true` flag to wipe the database.
+Authentication is handled via the **IDM Service**.
+
+---
 
 ## Environments
 
-The environments, also known as Spring profiles in our case, are as follows:
+The application supports multiple environments using **Spring profiles**:
 
-| Profile   | Property file                  | Description                                        |
-|-----------|--------------------------------|----------------------------------------------------|
-| `default` | *application.properties*       | The default profile defined by Spring Boot         |
-| `local`   | *application-local.properties* | The profile used for local development environment |
+| Profile    | Property File                 | Description                            |
+|------------|-------------------------------|----------------------------------------|
+| `default`  | application.properties        | Default Spring Boot profile            |
+| `local`    | application-local.properties  | Local development environment          |
+
+---
 
 ## Swagger UI
 
+Access Swagger UI for API documentation at:
+
 ```
-http://localhost:12211/reports.html
+http://localhost:15511/redcurrant-platform.html
 ```
+
+---
+
+## Logging
+
+The application uses **Logback** for centralized logging. Configuration files can be found under:
+
+```
+src/main/resources/logback-spring.xml
+```
+
+---
+
+## Testing
+
+Run tests using:
+
+```sh
+mvn test
+```
+
+**Testing Framework**: JUnit 5, Mockito.

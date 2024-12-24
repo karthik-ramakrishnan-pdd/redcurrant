@@ -86,4 +86,4 @@ spec:
             - name: ELASTIC_APM_SERVICE_NAME
               value: {{ .Values.name }}
             - name: ELASTIC_APM_APPLICATION_PACKAGES
-              value: "com.digit9"
+              value: "com.pdd"

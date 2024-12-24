@@ -5,49 +5,85 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.digit9.reports</groupId>
-        <artifactId>BLU-Reports</artifactId>
+        <groupId>com.pdd.redcurrant</groupId>
+        <artifactId>redcurrant-platform</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-
     <artifactId>application</artifactId>
 
     <dependencies>
-        <!--Local dependencies -->
+        <!-- Local dependencies -->
         <dependency>
-            <groupId>com.digit9.reports</groupId>
+            <groupId>com.pdd.redcurrant</groupId>
             <artifactId>domain</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.digit9.commons</groupId>
-            <artifactId>web</artifactId>
-        </dependency>
 
-        <!--Other dependencies -->
+        <!-- Spring Boot dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-oauth2</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.kafka</groupId>-->
-<!--            <artifactId>spring-kafka</artifactId>-->
-<!--        </dependency>-->
+
+        <!-- Solace dependencies -->
+        <dependency>
+            <groupId>com.solace.spring.boot</groupId>
+            <artifactId>solace-jms-spring-boot-starter</artifactId>
+            <version>${solace-spring-boot.version}</version>
+        </dependency>
+
+        <!-- Jakarta dependencies -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.1.0</version>
+        </dependency>
+
+        <!-- Swagger/OpenAPI dependencies -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-models</artifactId>
+            <version>2.2.20</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-common</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-security</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-security</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>

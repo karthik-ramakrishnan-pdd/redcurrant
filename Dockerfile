@@ -12,4 +12,4 @@ USER app
 RUN chmod +x launcher.jar
 
 ENTRYPOINT ["java", "-jar", "launcher.jar"]
-EXPOSE 12211
+EXPOSE 15511

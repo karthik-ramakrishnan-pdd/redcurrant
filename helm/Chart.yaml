@@ -1,4 +1,4 @@
 apiVersion: v2
-name: 'BLU Reports Service'
+name: 'Redcurrant Platform Service'
 version: 0.2.0
 appVersion: 0.0.0
