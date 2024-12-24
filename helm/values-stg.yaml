@@ -1,7 +1,7 @@
 name: redcurrant-platform
 replicas: 1
 containerPort: 15511
-image: luluorgacr.azurecr.io/cbaas-redcurrant-platform 
+image: luluorgacr.azurecr.io/cbaas-redcurrant-platform
 tag: stg-snapshot
 memoryRequest: 256Mi
 cpuRequest: 10m

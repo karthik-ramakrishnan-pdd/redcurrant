@@ -1,4 +1,3 @@
-
 package com.pdd.redcurrant.configuration;
 
 import org.springframework.context.annotation.Bean;

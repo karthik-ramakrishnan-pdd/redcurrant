@@ -12,9 +12,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-public class ReportsArchitectureTest {
+public class RCPlatformArchitectureTest {
 
-    private final String basePackage = ReportsArchitectureTest.class.getPackageName();
+    private final String basePackage = RCPlatformArchitectureTest.class.getPackageName();
 
     private final JavaClasses importedClasses = new ClassFileImporter().importPackages(basePackage);
 

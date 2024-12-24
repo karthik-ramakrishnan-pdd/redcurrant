@@ -1,9 +1,10 @@
-
 # Redcurrant Platform
 
 ## Overview
 
-**Redcurrant Platform** is a multi-module Spring Boot application implementing the **Hexagonal Architecture**. It provides a clean separation between business logic, infrastructure, and application logic, allowing extensibility, scalability, and easier testing.
+**Redcurrant Platform** is a multi-module Spring Boot application implementing the **Hexagonal Architecture**. It
+provides a clean separation between business logic, infrastructure, and application logic, allowing extensibility,
+scalability, and easier testing.
 
 ---
 
@@ -93,10 +94,10 @@ Authentication is handled via the **IDM Service**.
 
 The application supports multiple environments using **Spring profiles**:
 
-| Profile    | Property File                 | Description                            |
-|------------|-------------------------------|----------------------------------------|
-| `default`  | application.properties        | Default Spring Boot profile            |
-| `local`    | application-local.properties  | Local development environment          |
+| Profile   | Property File                | Description                   |
+|-----------|------------------------------|-------------------------------|
+| `default` | application.properties       | Default Spring Boot profile   |
+| `local`   | application-local.properties | Local development environment |
 
 ---
 

@@ -29,9 +29,10 @@ public class AccessDeniedExceptionHandler implements AccessDeniedHandler {
 
     /**
      * Handles {@link AccessDeniedException} exception thrown by Spring Security.
-     * @param request the request
+     *
+     * @param request  the request
      * @param response the response
-     * @param ex the exception
+     * @param ex       the exception
      * @throws IOException if getting the output stream from the response fails
      */
     @Override
@@ -39,11 +40,11 @@ public class AccessDeniedExceptionHandler implements AccessDeniedHandler {
                        final AccessDeniedException ex) throws IOException {
         log.warn("Forbidden access - {}", ex.getMessage());
         final ErrorResponseDto errorResponse = ErrorResponseDto.builder()
-            .code(WebApplicationExceptionReason.AUTHORIZATION_ERROR.getCode())
-            .message(String.format(WebApplicationExceptionReason.AUTHORIZATION_ERROR.getMessage(), ex.getMessage()))
-            .status(WebApplicationExceptionReason.AUTHORIZATION_ERROR.getHttpStatus())
-            .timestamp(LocalDateTime.now())
-            .build();
+                .code(WebApplicationExceptionReason.AUTHORIZATION_ERROR.getCode())
+                .message(String.format(WebApplicationExceptionReason.AUTHORIZATION_ERROR.getMessage(), ex.getMessage()))
+                .status(WebApplicationExceptionReason.AUTHORIZATION_ERROR.getHttpStatus())
+                .timestamp(LocalDateTime.now())
+                .build();
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(WebApplicationExceptionReason.AUTHORIZATION_ERROR.getHttpStatus().getValue());

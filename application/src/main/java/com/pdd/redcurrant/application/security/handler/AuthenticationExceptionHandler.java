@@ -29,21 +29,22 @@ public class AuthenticationExceptionHandler implements AuthenticationEntryPoint 
 
     /**
      * Handles {@link AuthenticationException} exception thrown by Spring Security.
-     * @param request the request
+     *
+     * @param request  the request
      * @param response the response
-     * @param ex the exception
+     * @param ex       the exception
      * @throws IOException if getting the output stream from the response fails
      */
     @Override
     public void commence(final HttpServletRequest request, final HttpServletResponse response,
-            final AuthenticationException ex) throws IOException {
+                         final AuthenticationException ex) throws IOException {
         log.warn("Unauthorized access - {}", ex.getMessage());
         final ErrorResponseDto errorResponse = ErrorResponseDto.builder()
-            .code(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getCode())
-            .message(String.format(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getMessage(), ex.getMessage()))
-            .status(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getHttpStatus())
-            .timestamp(LocalDateTime.now())
-            .build();
+                .code(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getCode())
+                .message(String.format(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getMessage(), ex.getMessage()))
+                .status(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getHttpStatus())
+                .timestamp(LocalDateTime.now())
+                .build();
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getHttpStatus().getValue());

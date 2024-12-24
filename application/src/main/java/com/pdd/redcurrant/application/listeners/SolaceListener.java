@@ -1,7 +1,11 @@
 package com.pdd.redcurrant.application.listeners;
 
-import com.pdd.redcurrant.domain.data.TSPReportsDto;
+import com.pdd.redcurrant.domain.ports.api.SolaceServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.annotation.JmsListener;
@@ -12,12 +16,32 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class SolaceListener {
 
-    @JmsListener(destination = "${spring.jms.default-destination}")
-    public void receiveMessage(String message) {
+    private final SolaceServicePort solaceService;
+
+    @JmsListener(destination = "${solace.topic.test.async}")
+    public void handleAsync(String message) {
         log.info("Received: {}", message);
-        var test = MapperUtils.convert(message, TSPReportsDto.class);
-        log.info("Id - {}, Wallet Id - {}, TSP Id - {}, Transaction Id - {}", test.getId(), test.getWalletId(),
-                test.getTspId(), test.getTransactionId());
+        solaceService.process(message);
+    }
+
+    @JmsListener(destination = "${solace.topic.test.sync}")
+    public void handleSync(Message message, Session session) {
+        try {
+            if (message instanceof TextMessage textMessage) {
+                String json = textMessage.getText();
+                log.info("Received message: {}", json);
+
+                // Create a response message
+                var responseMessage = session.createTextMessage(MapperUtils.toString(solaceService.processAndReturn(json)));
+                // Set correlation ID from the incoming message
+                responseMessage.setJMSCorrelationID(message.getJMSCorrelationID());
+
+                // Send the response back to the temporary reply-to destination
+                session.createProducer(message.getJMSReplyTo()).send(responseMessage);
+            }
+        } catch (JMSException e) {
+            log.error("Error processing message: {}", e.getMessage(), e);
+        }
     }
 
 }

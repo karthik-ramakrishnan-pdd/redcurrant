@@ -14,7 +14,7 @@ import java.math.BigInteger;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TSPReportsDto {
+public class MockDto {
 
     private Long id;
 

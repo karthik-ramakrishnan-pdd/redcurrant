@@ -29,6 +29,7 @@ public final class MapperUtils {
 
     /**
      * Method to convert an object to JSON string.
+     *
      * @param obj object to be converted
      * @return json string. returns null, if caught some exceptions
      */
@@ -38,7 +39,8 @@ public final class MapperUtils {
 
     /**
      * Method to convert an object to JSON string.
-     * @param obj object to be converted
+     *
+     * @param obj      object to be converted
      * @param prettify passing true will format output
      * @return json string. returns null, if caught some exceptions
      */
@@ -46,12 +48,11 @@ public final class MapperUtils {
         try {
             if (obj == null || obj instanceof String) {
                 return prettify ? OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(OBJECT_MAPPER.readTree((String) obj)) : (String) obj;
+                        .writeValueAsString(OBJECT_MAPPER.readTree((String) obj)) : (String) obj;
             }
             return prettify ? OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj)
                     : OBJECT_MAPPER.writeValueAsString(obj);
-        }
-        catch (JsonProcessingException ex) {
+        } catch (JsonProcessingException ex) {
             log.info("Error converting toString. {}", ex.getLocalizedMessage());
             return null;
         }
@@ -60,7 +61,8 @@ public final class MapperUtils {
     /**
      * Method to convert an object to different class. Internally this Method performs
      * serialization and then deserializing to new class
-     * @param obj object to be converted
+     *
+     * @param obj    object to be converted
      * @param tClass class reference of new object
      * @return converted object. null, if caught some exceptions
      */
@@ -75,6 +77,7 @@ public final class MapperUtils {
     /**
      * Method to convert an object to different class. Internally this Method performs
      * serialization and then deserializing to new class
+     *
      * @param obj object to be converted
      * @param ref type reference of new object
      * @return converted object. null, if caught some exceptions
@@ -95,12 +98,10 @@ public final class MapperUtils {
             String val = (obj instanceof String ob) ? ob : MapperUtils.toString(obj);
             if (ref instanceof TypeReference) {
                 return OBJECT_MAPPER.readValue(val, (TypeReference<T>) ref);
-            }
-            else {
+            } else {
                 return OBJECT_MAPPER.readValue(val, (Class<T>) ref);
             }
-        }
-        catch (JsonProcessingException ex) {
+        } catch (JsonProcessingException ex) {
             log.info("Error converting toObject. {}", ex.getLocalizedMessage());
             return null;
         }
