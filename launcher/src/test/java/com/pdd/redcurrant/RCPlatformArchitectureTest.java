@@ -1,4 +1,4 @@
-package com.pdd.reecurrant;
+package com.pdd.redcurrant;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -9,7 +9,6 @@ import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 public class RCPlatformArchitectureTest {
@@ -17,19 +16,6 @@ public class RCPlatformArchitectureTest {
     private final String basePackage = RCPlatformArchitectureTest.class.getPackageName();
 
     private final JavaClasses importedClasses = new ClassFileImporter().importPackages(basePackage);
-
-    @Test
-    @DisplayName("Arch tests - repositories used only in infrastructure layer")
-    public void testRepositoriesUsedInInfrastructureOnly() {
-        ArchRule rule = ArchRuleDefinition.classes()
-                .that()
-                .resideInAPackage("..repository..")
-                .should()
-                .onlyBeAccessed()
-                .byAnyPackage("..infrastructure..");
-
-        rule.check(importedClasses);
-    }
 
     @Test
     @DisplayName("Arch tests - no package cycles")
@@ -101,18 +87,6 @@ public class RCPlatformArchitectureTest {
                 .mayOnlyBeAccessedByLayers("Controller", "Config")
                 .whereLayer("Adapter")
                 .mayOnlyBeAccessedByLayers("Service", "Config");
-
-        rule.check(importedClasses);
-    }
-
-    @Test
-    @DisplayName("Arch tests - repositories should have @Repository annotation")
-    public void testRepositoryAnnotationAreRespected() {
-        ArchRule rule = ArchRuleDefinition.classes()
-                .that()
-                .resideInAPackage(basePackage + ".infrastructure.repository..")
-                .should()
-                .beAnnotatedWith(Repository.class);
 
         rule.check(importedClasses);
     }

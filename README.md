@@ -36,7 +36,7 @@ The application follows the **Hexagonal Architecture**:
 1. **Java**: 21+
 2. **Maven**: 3.9.9
 3. **MySQL**: 8.4.0 (local setup)
-4. **Solace**: Messaging broker setup
+4. **Solace**: 5.2.0 Messaging broker setup
 
 ---
 
@@ -106,7 +106,7 @@ The application supports multiple environments using **Spring profiles**:
 Access Swagger UI for API documentation at:
 
 ```
-http://localhost:15511/redcurrant-platform.html
+http://localhost:15511/swagger-ui/index.html
 ```
 
 ---
