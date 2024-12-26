@@ -15,4 +15,5 @@ public class StoredProcedureServiceImpl implements StoredProcedureServicePort {
     public String fetch(String name, Object[] params) {
         return storedProcedureJdbcAdapter.executeProcedure(name, params).toString();
     }
+
 }

@@ -15,19 +15,9 @@ import java.util.List;
 /**
  * Swagger UI configuration for SpringDoc OpenAPI.
  */
-@OpenAPIDefinition(
-        info = @Info(
-                title = "Generic Application API",
-                version = "1.0",
-                description = "API documentation for Generic Application"
-        )
-)
-@SecurityScheme(
-        name = "BearerAuth",
-        type = SecuritySchemeType.HTTP,
-        scheme = "bearer",
-        bearerFormat = "JWT"
-)
+@OpenAPIDefinition(info = @Info(title = "Generic Application API", version = "1.0",
+        description = "API documentation for Generic Application"))
+@SecurityScheme(name = "BearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 @Configuration
 public class SwaggerUiConfiguration {
 
@@ -40,23 +30,20 @@ public class SwaggerUiConfiguration {
     @Bean
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
-                .group("Public API")
-                .packagesToScan("com.pdd")
-                .addOpenApiCustomizer(openApi -> openApi
-                        .info(new io.swagger.v3.oas.models.info.Info()
-                                .title(applicationName)
-                                .description(applicationDescription)
-                                .version("1.0"))
-                        .servers(getServers()))
-                .build();
+            .group("Public API")
+            .packagesToScan("com.pdd")
+            .addOpenApiCustomizer(openApi -> openApi
+                .info(new io.swagger.v3.oas.models.info.Info().title(applicationName)
+                    .description(applicationDescription)
+                    .version("1.0"))
+                .servers(getServers()))
+            .build();
     }
 
     private List<Server> getServers() {
-        return List.of(
-                new Server().url("/").description("Local"),
+        return List.of(new Server().url("/").description("Local"),
                 new Server().url("https://dev.redcurrant-platform.com").description("Developement"),
-                new Server().url("https://stg.redcurrant-platform.com").description("Staging")
-        );
+                new Server().url("https://stg.redcurrant-platform.com").description("Staging"));
     }
 
 }

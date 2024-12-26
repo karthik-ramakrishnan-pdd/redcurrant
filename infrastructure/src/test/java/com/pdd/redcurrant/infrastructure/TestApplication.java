@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @EnableTransactionManagement
-@ComponentScan(basePackages = {"com.pdd.redcurrant.infrastructure"})
+@ComponentScan(basePackages = { "com.pdd.redcurrant.infrastructure" })
 public class TestApplication {
 
 }

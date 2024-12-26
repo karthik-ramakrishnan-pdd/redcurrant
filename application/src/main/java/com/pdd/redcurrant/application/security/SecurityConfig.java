@@ -3,7 +3,6 @@ package com.pdd.redcurrant.application.security;
 import com.pdd.redcurrant.application.security.handler.AccessDeniedExceptionHandler;
 import com.pdd.redcurrant.application.security.handler.AuthenticationExceptionHandler;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
@@ -27,28 +26,17 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 @AutoConfigureAfter(AuthenticationExceptionHandler.class)
 public class SecurityConfig {
 
-    protected static final String[] IGNORED_PATH = {
-            "/v1/internal/**",
-            "/v3/api-docs/**",
-            "/swagger-resources/**",
-            "/swagger-ui/**",
-            "/error",
-            "/actuator/**"
-    };
+    protected static final String[] IGNORED_PATH = { "/v1/internal/**", "/v3/api-docs/**", "/swagger-resources/**",
+            "/swagger-ui/**", "/error", "/actuator/**" };
 
     private final AuthenticationExceptionHandler authenticationExceptionHandler;
 
     private final AccessDeniedExceptionHandler accessDeniedExceptionHandler;
 
-    @Value("${springdoc.swagger-ui.path:/swagger-ui/index.html}")
-    private String swaggerUiPath;
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests((authorize) -> authorize.requestMatchers(IGNORED_PATH)
-                .permitAll()
-                .anyRequest()
-                .authenticated());
+        http.authorizeHttpRequests(
+                (authorize) -> authorize.requestMatchers(IGNORED_PATH).permitAll().anyRequest().authenticated());
 
         http.exceptionHandling(configurer -> {
             configurer.authenticationEntryPoint(authenticationExceptionHandler);
@@ -62,10 +50,8 @@ public class SecurityConfig {
         http.cors(AbstractHttpConfigurer::disable);
 
         // CSRF configuration
-        http.csrf(csrf -> csrf
-                .ignoringRequestMatchers(IGNORED_PATH)
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-        );
+        http.csrf(csrf -> csrf.ignoringRequestMatchers(IGNORED_PATH)
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
 
         return http.build();
     }

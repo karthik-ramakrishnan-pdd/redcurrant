@@ -20,8 +20,13 @@ public class SolaceListener {
 
     @JmsListener(destination = "${solace.topic.test.async}")
     public void handleAsync(String message) {
-        log.info("Received: {}", message);
-        solaceService.process(message);
+        try {
+            log.info("Received: {}", message);
+            solaceService.process(message);
+        }
+        catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @JmsListener(destination = "${solace.topic.test.sync}")
@@ -32,15 +37,17 @@ public class SolaceListener {
                 log.info("Received message: {}", json);
 
                 // Create a response message
-                var responseMessage = session.createTextMessage(MapperUtils.toString(solaceService.processAndReturn(json)));
+                var responseMessage = session
+                    .createTextMessage(MapperUtils.toString(solaceService.processAndReturn(json)));
                 // Set correlation ID from the incoming message
                 responseMessage.setJMSCorrelationID(message.getJMSCorrelationID());
 
                 // Send the response back to the temporary reply-to destination
                 session.createProducer(message.getJMSReplyTo()).send(responseMessage);
             }
-        } catch (JMSException e) {
-            log.error("Error processing message: {}", e.getMessage(), e);
+        }
+        catch (JMSException ex) {
+            log.error("Error processing message: {}", ex.getMessage(), ex);
         }
     }
 

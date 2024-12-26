@@ -114,7 +114,8 @@ public class SwaggerUIFilter extends OncePerRequestFilter {
 
             if (writer != null) {
                 writer.flush();
-            } else if (output != null) {
+            }
+            else if (output != null) {
                 output.flush();
             }
         }
@@ -122,7 +123,8 @@ public class SwaggerUIFilter extends OncePerRequestFilter {
         public byte[] getCaptureAsBytes() throws IOException {
             if (writer != null) {
                 writer.close();
-            } else if (output != null) {
+            }
+            else if (output != null) {
                 output.close();
             }
 

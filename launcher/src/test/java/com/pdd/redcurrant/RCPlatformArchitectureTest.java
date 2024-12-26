@@ -29,11 +29,11 @@ public class RCPlatformArchitectureTest {
     @DisplayName("Arch tests - domain doesn't access application and infrastructure")
     public void testDomainDoesNotAccessApplicationAndInfrastructure() {
         ArchRule rule = ArchRuleDefinition.noClasses()
-                .that()
-                .resideInAPackage(basePackage + ".domain..")
-                .should()
-                .accessClassesThat()
-                .resideInAnyPackage(basePackage + ".application..", basePackage + ".infrastructure..");
+            .that()
+            .resideInAPackage(basePackage + ".domain..")
+            .should()
+            .accessClassesThat()
+            .resideInAnyPackage(basePackage + ".application..", basePackage + ".infrastructure..");
 
         rule.check(importedClasses);
     }
@@ -42,14 +42,14 @@ public class RCPlatformArchitectureTest {
     @DisplayName("Arch tests - application doesn't access infrastructure")
     public void testApplicationDoesNotAccessInfrastructure() {
         ArchRule rule = ArchRuleDefinition.noClasses()
-                .that()
-                .resideInAPackage(basePackage + ".application..")
-                .should()
-                .accessClassesThat()
-                .resideInAPackage(basePackage + ".infrastructure..")
-                .orShould()
-                .accessClassesThat()
-                .resideInAPackage(basePackage + ".domain.ports.spi..");
+            .that()
+            .resideInAPackage(basePackage + ".application..")
+            .should()
+            .accessClassesThat()
+            .resideInAPackage(basePackage + ".infrastructure..")
+            .orShould()
+            .accessClassesThat()
+            .resideInAPackage(basePackage + ".domain.ports.spi..");
 
         rule.check(importedClasses);
     }
@@ -58,35 +58,36 @@ public class RCPlatformArchitectureTest {
     @DisplayName("Arch tests - infrastructure doesn't access application")
     public void testInfrastructureDoesNotAccessApplication() {
         ArchRule rule = ArchRuleDefinition.noClasses()
-                .that()
-                .resideInAPackage(basePackage + ".infrastructure..")
-                .should()
-                .accessClassesThat()
-                .resideInAPackage(basePackage + ".application..")
-                .orShould()
-                .accessClassesThat()
-                .resideInAPackage(basePackage + ".domain.ports.api..");
+            .that()
+            .resideInAPackage(basePackage + ".infrastructure..")
+            .should()
+            .accessClassesThat()
+            .resideInAPackage(basePackage + ".application..")
+            .orShould()
+            .accessClassesThat()
+            .resideInAPackage(basePackage + ".domain.ports.api..");
         rule.check(importedClasses);
     }
 
     @Test
     @DisplayName("Arch tests - layer dependencies are respected")
     public void testAppLayersAreRespected() {
-        ArchRule rule = Architectures.layeredArchitecture().consideringOnlyDependenciesInLayers()
-                .layer("Controller")
-                .definedBy(basePackage + ".application.controller..")
-                .layer("Service")
-                .definedBy(basePackage + ".domain.service..")
-                .layer("Adapter")
-                .definedBy(basePackage + ".infrastructure.adapters..")
-                .layer("Config")
-                .definedBy(basePackage + ".configuration..")
-                .whereLayer("Controller")
-                .mayNotBeAccessedByAnyLayer()
-                .whereLayer("Service")
-                .mayOnlyBeAccessedByLayers("Controller", "Config")
-                .whereLayer("Adapter")
-                .mayOnlyBeAccessedByLayers("Service", "Config");
+        ArchRule rule = Architectures.layeredArchitecture()
+            .consideringOnlyDependenciesInLayers()
+            .layer("Controller")
+            .definedBy(basePackage + ".application.controller..")
+            .layer("Service")
+            .definedBy(basePackage + ".domain.service..")
+            .layer("Adapter")
+            .definedBy(basePackage + ".infrastructure.adapters..")
+            .layer("Config")
+            .definedBy(basePackage + ".configuration..")
+            .whereLayer("Controller")
+            .mayNotBeAccessedByAnyLayer()
+            .whereLayer("Service")
+            .mayOnlyBeAccessedByLayers("Controller", "Config")
+            .whereLayer("Adapter")
+            .mayOnlyBeAccessedByLayers("Service", "Config");
 
         rule.check(importedClasses);
     }
@@ -95,12 +96,12 @@ public class RCPlatformArchitectureTest {
     @DisplayName("Arch tests - adapters should have @Service annotation and end with 'Adapter' suffix")
     public void testAdaptersAnnotationAreRespected() {
         ArchRule rule = ArchRuleDefinition.classes()
-                .that()
-                .resideInAPackage(basePackage + ".infrastructure.adapters..")
-                .should()
-                .beAnnotatedWith(Service.class)
-                .andShould()
-                .haveSimpleNameEndingWith("Adapter");
+            .that()
+            .resideInAPackage(basePackage + ".infrastructure.adapters..")
+            .should()
+            .beAnnotatedWith(Service.class)
+            .andShould()
+            .haveSimpleNameEndingWith("Adapter");
 
         rule.check(importedClasses);
     }
@@ -109,12 +110,12 @@ public class RCPlatformArchitectureTest {
     @DisplayName("Arch tests - ports should have a 'Port' suffix")
     public void testPortNamingAreRespected() {
         ArchRule rule = ArchRuleDefinition.classes()
-                .that()
-                .resideInAPackage(basePackage + ".domain.ports..")
-                .should()
-                .haveSimpleNameEndingWith("Port")
-                .andShould()
-                .beInterfaces();
+            .that()
+            .resideInAPackage(basePackage + ".domain.ports..")
+            .should()
+            .haveSimpleNameEndingWith("Port")
+            .andShould()
+            .beInterfaces();
 
         rule.check(importedClasses);
     }
@@ -123,10 +124,10 @@ public class RCPlatformArchitectureTest {
     @DisplayName("Arch tests - feign clients should be inside 'feignclient' package")
     public void testFeignClientPackageAreRespected() {
         ArchRule rule = ArchRuleDefinition.classes()
-                .that()
-                .areAnnotatedWith(FeignClient.class)
-                .should()
-                .resideInAPackage("..feignclient..(*)");
+            .that()
+            .areAnnotatedWith(FeignClient.class)
+            .should()
+            .resideInAPackage("..feignclient..(*)");
 
         rule.allowEmptyShould(true).check(importedClasses);
     }
@@ -135,12 +136,12 @@ public class RCPlatformArchitectureTest {
     @DisplayName("Arch tests - DTO should have a 'Dto' suffix")
     public void testDtoNamingAreRespected() {
         ArchRule rule = ArchRuleDefinition.classes()
-                .that()
-                .resideInAPackage(basePackage + ".domain.data..")
-                .and()
-                .areNotAnnotatedWith("lombok.Generated")
-                .should()
-                .haveSimpleNameEndingWith("Dto");
+            .that()
+            .resideInAPackage(basePackage + ".domain.data..")
+            .and()
+            .areNotAnnotatedWith("lombok.Generated")
+            .should()
+            .haveSimpleNameEndingWith("Dto");
 
         rule.check(importedClasses);
     }

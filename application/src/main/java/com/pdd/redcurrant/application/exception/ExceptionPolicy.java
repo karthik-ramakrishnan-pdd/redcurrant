@@ -8,21 +8,18 @@ public interface ExceptionPolicy {
 
     /**
      * Get the exception code.
-     *
      * @return the exception code.
      */
     String getCode();
 
     /**
      * Get the exception message.
-     *
      * @return the exception message.
      */
     String getMessage();
 
     /**
      * Get the http status associated with the exception.
-     *
      * @return the http status associated with the exception
      */
     HttpStatus getHttpStatus();

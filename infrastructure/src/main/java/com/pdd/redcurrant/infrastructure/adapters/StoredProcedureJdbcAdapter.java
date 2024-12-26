@@ -25,10 +25,13 @@ public class StoredProcedureJdbcAdapter implements StoredProcedurePort {
 
         try {
             log.info("Executing stored procedure: {}", procedureName);
-            return jdbcTemplate.queryForList(callProcedure, params);  // Executes the procedure and returns the result
-        } catch (DataAccessException ex) {
+            // Executes the procedure and returns the result
+            return jdbcTemplate.queryForList(callProcedure, params);
+        }
+        catch (DataAccessException ex) {
             log.error("Error executing stored procedure: {}", procedureName, ex);
-            throw new RuntimeException("Error executing stored procedure: " + procedureName, ex);  // Re-throw the exception with a clear message
+            // Re-throw the exception with a clear message
+            throw new RuntimeException("Error executing stored procedure: " + procedureName, ex);
         }
     }
 

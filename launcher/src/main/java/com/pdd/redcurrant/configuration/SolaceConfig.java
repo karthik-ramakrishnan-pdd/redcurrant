@@ -11,4 +11,5 @@ public class SolaceConfig {
     public String solaceConfiguration() {
         return "Solace PubSub+ configured";
     }
+
 }

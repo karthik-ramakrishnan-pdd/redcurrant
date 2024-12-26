@@ -2,6 +2,7 @@ package com.pdd.redcurrant.application.controller.internal;
 
 import com.pdd.redcurrant.application.annotations.ExcludeFromJacocoGeneratedReport;
 import com.pdd.redcurrant.domain.data.MockDto;
+import com.pdd.redcurrant.domain.data.RequestDto;
 import com.pdd.redcurrant.domain.ports.api.StoredProcedureServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +12,7 @@ import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,37 +45,48 @@ public class InternalEndpointController {
 
     @GetMapping(path = "procedure/{name}")
     public String fetch(@PathVariable(name = "name") String name,
-                        @RequestParam(name = "params", required = false) List<String> params) {
+            @RequestParam(name = "params", required = false) List<String> params) {
         return storedProcedureService.fetch(name, params.toArray());
     }
 
     @PostMapping(path = "solace/async")
-    public void testAsync(@RequestBody MockDto request) {
-        String message = MapperUtils.toString(request);
-        jmsTemplate.convertAndSend(topicAsync, message);
-        log.info("Published: {}", message);
+    public void testAsync(@RequestBody RequestDto request) {
+        try {
+            String message = MapperUtils.toString(request);
+            jmsTemplate.convertAndSend(topicAsync, message);
+            log.info("Published: {}", message);
+        }
+        catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @PostMapping(path = "solace/sync")
     public MockDto testSync(@RequestBody MockDto request) {
-        String message = MapperUtils.toString(request);
-        log.info("Publishing message: {}", message);
+        try {
+            String message = MapperUtils.toString(request);
+            log.info("Publishing message: {}", message);
 
-        // Send the message and wait for the response
-        Message responseMessage = jmsTemplate.sendAndReceive(topicSync, (Session session) -> {
-            TextMessage textMessage = session.createTextMessage(message);
-            // Set preferred correlation ID
-            textMessage.setJMSCorrelationID(UUID.randomUUID().toString());
-            return textMessage;
-        });
-        log.info("Received response for publishing message: {}", message);
+            // Send the message and wait for the response
+            Message responseMessage = jmsTemplate.sendAndReceive(topicSync, (Session session) -> {
+                TextMessage textMessage = session.createTextMessage(message);
+                // Set preferred correlation ID
+                textMessage.setJMSCorrelationID(UUID.randomUUID().toString());
+                return textMessage;
+            });
+            log.info("Received response for publishing message: {}", message);
 
-        // Check if the response message is not null and return its body
-        if (responseMessage instanceof TextMessage textMessage) {
-            return MapperUtils.convert(textMessage, MockDto.class);
-        } else {
-            log.warn("No response received for message: {}", message);
-            return null; // Handle null case appropriately
+            // Check if the response message is not null and return its body
+            if (responseMessage instanceof TextMessage textMessage) {
+                return MapperUtils.convert(textMessage, MockDto.class);
+            }
+            else {
+                log.warn("No response received for message: {}", message);
+                return null; // Handle null case appropriately
+            }
+        }
+        catch (JmsException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
