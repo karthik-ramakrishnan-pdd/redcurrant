@@ -60,8 +60,20 @@
                 <configuration>
                     <mainClass>com.pdd.redcurrant.RCPlatformApplication</mainClass>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>info_build</id>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
-
         </plugins>
     </build>
 
