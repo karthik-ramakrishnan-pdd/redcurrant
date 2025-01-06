@@ -1,13 +1,13 @@
 # Stage 1: Build the application
-FROM openjdk:21 AS builder
+FROM maven:3.9.8-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
 COPY . /app
 
-CMD ls -la 
+#CMD ls -la /app
 
-RUN ./mvnw --settings ./.mvn/settings.xml spring-javaformat:apply clean install
+RUN mvn --settings settings.xml spring-javaformat:apply clean install
 
 # Stage 2: Run the application
 FROM pddccoe/pdd-official-java:openjdk-21-jre

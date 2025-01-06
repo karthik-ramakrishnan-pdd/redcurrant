@@ -16,4 +16,4 @@ docker rmi luluorgacr.azurecr.io/redcurrent-platform:stg --force
 #Run Latest Image
 docker pull luluorgacr.azurecr.io/redcurrent-platform:stg
 
-docker run --name redcurrant-platform -d -p 15511:8080  luluorgacr.azurecr.io/redcurrent-platform:stg
+docker run buildx build  --platform linux/amd64 --name redcurrant-platform -d -p 15511:8080  luluorgacr.azurecr.io/redcurrent-platform:stg
