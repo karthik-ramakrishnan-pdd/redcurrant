@@ -14,4 +14,4 @@ services:
       platforms:
         - linux/amd64
     ports:
-      - 8080:8080/tcp
+      - 15511:8080/tcp
