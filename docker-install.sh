@@ -10,10 +10,10 @@ az acr login --name luluorgacr
 docker stop redcurrant-platform
 docker rm redcurrant-platform
 
-docker rmi luluorgacr.azurecr.io/redcurrant-platform:latest-dev --force
+docker rmi luluorgacr.azurecr.io/redcurrent-platform:stg --force
 
 
 #Run Latest Image
-docker pull luluorgacr.azurecr.io/redcurrant-platform:latest-dev
+docker pull luluorgacr.azurecr.io/redcurrent-platform:stg
 
-docker run --name redcurrant-platform -d -p 8080:8080  luluorgacr.azurecr.io/redcurrant-platform:latest-dev
+docker run --name redcurrant-platform -d -p 15511:8080  luluorgacr.azurecr.io/redcurrent-platform:stg
