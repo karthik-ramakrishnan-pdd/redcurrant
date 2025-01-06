@@ -1,0 +1,24 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <id>digit9</id>
+      <username>digit9</username>
+      <password>za4ov7dj4q7x6emkx3lrqeocrfcjxutjjw2i4nzit2cz2mrmnjwa</password>
+    </server>
+    <server>
+      <id>luluorg</id>
+      <username>luluorg</username>
+      <password>jghvyvfxurm37h7kugetecmxduqjpal7s2sswpzakc4zlzhdpvna</password>
+    </server>
+
+    <server>
+      <id>luluorgpdd</id>
+      <username>luluorgpdd</username>
+      <password>twd442q74fuzcbvfavprb6vimvnninishwelzgj37klcamoa6ixa</password>
+    </server>
+
+  </servers>
+</settings>
