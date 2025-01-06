@@ -1,7 +1,7 @@
-name: reports
+name: redcurrant-platform
 replicas: 1
-containerPort: 12211
-image: luluorgacr.azurecr.io/cbaas-blu-reports 
+containerPort: 15511
+image: luluorgacr.azurecr.io/cbaas-redcurrant-platform
 tag: demo-snapshot
 memoryRequest: 256Mi
 cpuRequest: 10m
@@ -21,20 +21,18 @@ tolerations: 'true'
 ENV:
   - name: SPRING_PROFILES_ACTIVE
     value: demo
-  - name: D9_IDM_URL
+  - name: RC_IDM_URL
     value: http://idm.cbaas-demo-wht.svc.cluster.local:13250
-  - name: BLU_REFERENCE_DATA_URL
-    value: http://referencedata.cbaas-demo-blu.svc.cluster.local:12050
-  - name: D9_SWAGGER_IDM_URL
+  - name: RC_SWAGGER_IDM_URL
     value: https://demo.digitnine.com/idm/oauth/token
   - name: DB_URL
-    value: 'jdbc:postgresql://postgres-db.cbaas-demo-blk.svc.cluster.local:5432'
+    value: 'jdbc:mysql://postgres-db.cbaas-demo-blk.svc.cluster.local:3306'
   - name: DB_USERNAME
     value: service_user
   - name: DB_PASSWORD
     value: 47h9c6Pz4!ts
-  - name: D9_APP_CONTEXT
-    value: /reports/
+  - name: RC_APP_CONTEXT
+    value: /redcurrant-platform/
   - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
     value: "*"
   - name: ELASTIC_APM_ENVIRONMENT

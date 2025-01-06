@@ -24,7 +24,7 @@ spec:
         fsGroup: 2000
       nodeSelector:
         agentpool: {{.Values.nodeSelectorLabel}}
-      {{- if .Values.tolerations }}
+      { { - if .Values.tolerations } }
       tolerations:
         - effect: NoSchedule
           key: agentpool
@@ -41,7 +41,7 @@ spec:
         - effect: NoSchedule
           key: agentpool
           value: agentpool
-      {{- end }}
+      { { - end } }
       containers:
         - name: {{.Values.name}}
           image: {{.Values.image}}:{{.Values.tag}}
@@ -79,11 +79,11 @@ spec:
             - containerPort: {{.Values.containerPort}}
             - containerPort: 52211
           env:
-            {{- range $env := .Values.ENV }}
-            - name: {{ $env.name }}
-              value: {{ $env.value | quote }}
-            {{- end }}
+            { { - range $env := .Values.ENV } }
+            - name: { { $env.name } }
+              value: { { $env.value | quote } }
+            { { - end } }
             - name: ELASTIC_APM_SERVICE_NAME
-              value: {{ .Values.name }}
+              value: { { .Values.name } }
             - name: ELASTIC_APM_APPLICATION_PACKAGES
-              value: "com.digit9"
+              value: "com.pdd"

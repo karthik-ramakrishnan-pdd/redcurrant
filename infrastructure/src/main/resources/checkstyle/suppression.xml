@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!--      temp exclusions... need to be removed -->
+    <suppress checks="GenericWhitespace"/>
+
+    <suppress checks="NoWhitespaceAfter"/>
+    <suppress checks="MagicNumber"/>
+    <suppress checks="RightCurly"/>
+    <suppress checks="FinalParameters"/>
+    <suppress checks="JavadocVariable"/>
+    <suppress checks="JavadocPackage"/>
+    <suppress checks="DesignForExtension"/>
+    <suppress checks="HideUtilityClassConstructor"/>
+    <suppress checks="NewlineAtEndOfFile"/>
+    <suppress checks="LineLength"/>
+    <suppress checks="TodoComment"/>
+    <suppress checks="MissingJavadocMethod"/>
+    <suppress checks="RequireThis"/>
+    <suppress checks="SpringImportOrder"/>
+    <suppress checks="SpringHeader"/>
+    <suppress checks="SpringTestFileName"/>
+
+    <!--    Message suppressed with Location -->
+    <suppress checks="NoWhitespaceBefore" files=".+Reason.java"/>
+
+    <!--    Messages suppressed -->
+    <suppress message="Expected @param tag for *"/>
+    <suppress message="Type Javadoc comment is missing @author tag."/>
+    <suppress message="First sentence should end with a period."/>
+    <suppress message="@return tag should be present and have description."/>
+    <suppress message="Please use AssertJ imports."/>
+    <suppress message=".*using BDDMockito imports."/>
+    <suppress message="Lambda argument missing parentheses."/>
+    <suppress message="Javadoc element descriptions should not start with an uppercase letter."/>
+
+    <suppress files="[/\\]target[/\\]" checks=".*" />
+</suppressions>

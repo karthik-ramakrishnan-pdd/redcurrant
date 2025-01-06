@@ -24,4 +24,4 @@ USER app
 RUN chmod +x launcher.jar
 
 ENTRYPOINT ["java", "-jar", "launcher.jar"]
-EXPOSE 8080
+EXPOSE 15511

@@ -6,6 +6,6 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: {{.Values.containerPort}}
+    - port: {{.Values.containerPort}}
   selector:
     app: {{.Values.name}}
