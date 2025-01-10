@@ -8,6 +8,7 @@ import jakarta.jms.Session;
 import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,10 @@ public class SolaceListener {
 
     private final SolaceServicePort solaceService;
 
-    @JmsListener(destination = "${solace.topic.test.async}")
+    @Value("${solace.queue.test.sync}")
+    private String syncQueueName;
+
+    @JmsListener(destination = "${solace.queue.test.async}")
     public void handleAsync(String message) {
         try {
             log.info("Received: {}", message);
@@ -29,8 +33,9 @@ public class SolaceListener {
         }
     }
 
-    @JmsListener(destination = "${solace.topic.test.sync}")
+    @JmsListener(destination = "${solace.queue.test.sync}")
     public void handleSync(Message message, Session session) {
+        log.info("Listener invoked for queue: {}", syncQueueName);
         try {
             if (message instanceof TextMessage textMessage) {
                 String json = textMessage.getText();
@@ -46,8 +51,17 @@ public class SolaceListener {
                 session.createProducer(message.getJMSReplyTo()).send(responseMessage);
             }
         }
-        catch (JMSException ex) {
+        catch (Exception ex) {
             log.error("Error processing message: {}", ex.getMessage(), ex);
+
+            try {
+                var responseMessage = session
+                        .createTextMessage("Error Processing Data");
+                responseMessage.setJMSCorrelationID(message.getJMSCorrelationID());
+                session.createProducer(message.getJMSReplyTo()).send(responseMessage);
+            } catch (JMSException rollbackEx) {
+                log.error("Error with JMS session: {}", rollbackEx.getMessage(), rollbackEx);
+            }
         }
     }
 
