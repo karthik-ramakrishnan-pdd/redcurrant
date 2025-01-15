@@ -22,7 +22,7 @@ public class SolaceListener {
     @Value("${solace.queue.test.sync}")
     private String syncQueueName;
 
-    @JmsListener(destination = "${solace.queue.test.async}")
+    @JmsListener(destination = "${solace.topic.test.async}", containerFactory = "topicListenerContainerFactory")
     public void handleAsync(String message) {
         try {
             log.info("Received: {}", message);
@@ -33,35 +33,33 @@ public class SolaceListener {
         }
     }
 
-    @JmsListener(destination = "${solace.queue.test.sync}")
+    @JmsListener(destination = "${solace.queue.test.sync}", containerFactory = "queueListenerContainerFactory")
     public void handleSync(Message message, Session session) {
         log.info("Listener invoked for queue: {}", syncQueueName);
-        try {
-            if (message instanceof TextMessage textMessage) {
-                String json = textMessage.getText();
-                log.info("Received message: {}", json);
-
-                // Create a response message
-                var responseMessage = session
-                    .createTextMessage(MapperUtils.toString(solaceService.processAndReturn(json)));
-                // Set correlation ID from the incoming message
-                responseMessage.setJMSCorrelationID(message.getJMSCorrelationID());
-
-                // Send the response back to the temporary reply-to destination
-                session.createProducer(message.getJMSReplyTo()).send(responseMessage);
-            }
+        if (! (message instanceof TextMessage)) {
+            log.warn("Obtained message is not supported: {}", message);
+            return;
         }
-        catch (Exception ex) {
-            log.error("Error processing message: {}", ex.getMessage(), ex);
 
+        try {
+            String json = ((TextMessage) message).getText();
+            log.info("Received message: {}", json);
+
+            String response;
             try {
-                var responseMessage = session
-                        .createTextMessage("Error Processing Data");
-                responseMessage.setJMSCorrelationID(message.getJMSCorrelationID());
-                session.createProducer(message.getJMSReplyTo()).send(responseMessage);
-            } catch (JMSException rollbackEx) {
-                log.error("Error with JMS session: {}", rollbackEx.getMessage(), rollbackEx);
+                response = MapperUtils.toString(solaceService.processAndReturn(json));
+            } catch (Exception ex) {
+                log.error("Error processing message: {}", ex.getMessage());
+                response = "Error Processing Data";
             }
+
+            TextMessage responseMessage = session.createTextMessage(response);
+            // Set correlation ID from the incoming message
+            responseMessage.setJMSCorrelationID(message.getJMSCorrelationID());
+            // Send the response back to the temporary reply-to destination
+            session.createProducer(message.getJMSReplyTo()).send(responseMessage);
+        } catch (JMSException jmsEx) {
+            log.error("Error with JMS session: {}", jmsEx.getMessage());
         }
     }
 
