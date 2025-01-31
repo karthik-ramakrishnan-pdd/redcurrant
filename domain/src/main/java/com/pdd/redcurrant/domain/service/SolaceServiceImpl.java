@@ -1,7 +1,7 @@
 package com.pdd.redcurrant.domain.service;
 
-import com.pdd.redcurrant.domain.data.MockDto;
 import com.pdd.redcurrant.domain.data.RequestDto;
+import com.pdd.redcurrant.domain.data.ResponseDto;
 import com.pdd.redcurrant.domain.ports.api.SolaceServicePort;
 import com.pdd.redcurrant.domain.registry.ServicePortRegistry;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
@@ -28,10 +28,10 @@ public class SolaceServiceImpl implements SolaceServicePort {
     }
 
     @Override
-    public MockDto processAndReturn(String message) {
-        var test = MapperUtils.convert(message, MockDto.class);
-        test.setTspId(test.getTspId().toUpperCase());
-        return test;
+    public ResponseDto processAndReturn(String message) {
+        var request = MapperUtils.convert(message, RequestDto.class);
+        log.info("Received request: {}", MapperUtils.toString(request));
+        return ResponseDto.builder().statusCode("200").statusDesc("SUCCESS").build();
     }
 
 }

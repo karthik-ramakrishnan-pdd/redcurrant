@@ -5,7 +5,7 @@ import com.pdd.redcurrant.domain.data.ResponseDto;
 
 public interface GCashServicePort {
 
-    ResponseDto sendTxn(RequestDto request);
+    ResponseDto preSendTxn(RequestDto request);
 
     ResponseDto enquiryTxn(RequestDto request);
 

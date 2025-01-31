@@ -13,14 +13,14 @@ public class GCashServiceImpl implements GCashServicePort {
     // private final GCashMapper gCashMapper;
 
     @Override
-    public ResponseDto sendTxn(RequestDto request) {
+    public ResponseDto preSendTxn(RequestDto request) {
+        captureEntry(request);
         return null;
     }
 
     @Override
     public ResponseDto enquiryTxn(RequestDto request) {
-        log.info("Method {}, Routing Key {}", request.getMetadata().getMethod(),
-                request.getMetadata().getExchangeRoutingKey());
+        captureEntry(request);
         return null;
     }
 
@@ -47,6 +47,11 @@ public class GCashServiceImpl implements GCashServicePort {
     @Override
     public ResponseDto cancelTxn(RequestDto request) {
         return null;
+    }
+
+    private void captureEntry(RequestDto request) {
+        log.info("Method {}, Routing Key {}", request.getMetadata().getMethod(),
+                request.getMetadata().getExchangeRoutingKey());
     }
 
 }

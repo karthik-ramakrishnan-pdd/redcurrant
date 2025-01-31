@@ -8,7 +8,6 @@ import jakarta.jms.Session;
 import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +17,6 @@ import org.springframework.stereotype.Service;
 public class SolaceListener {
 
     private final SolaceServicePort solaceService;
-
-    @Value("${solace.queue.test.sync}")
-    private String syncQueueName;
 
     @JmsListener(destination = "${solace.topic.test.async}", containerFactory = "topicListenerContainerFactory")
     public void handleAsync(String message) {
@@ -35,8 +31,7 @@ public class SolaceListener {
 
     @JmsListener(destination = "${solace.queue.test.sync}", containerFactory = "queueListenerContainerFactory")
     public void handleSync(Message message, Session session) {
-        log.info("Listener invoked for queue: {}", syncQueueName);
-        if (! (message instanceof TextMessage)) {
+        if (!(message instanceof TextMessage)) {
             log.warn("Obtained message is not supported: {}", message);
             return;
         }
@@ -48,7 +43,8 @@ public class SolaceListener {
             String response;
             try {
                 response = MapperUtils.toString(solaceService.processAndReturn(json));
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 log.error("Error processing message: {}", ex.getMessage());
                 response = "Error Processing Data";
             }
@@ -58,7 +54,8 @@ public class SolaceListener {
             responseMessage.setJMSCorrelationID(message.getJMSCorrelationID());
             // Send the response back to the temporary reply-to destination
             session.createProducer(message.getJMSReplyTo()).send(responseMessage);
-        } catch (JMSException jmsEx) {
+        }
+        catch (JMSException jmsEx) {
             log.error("Error with JMS session: {}", jmsEx.getMessage());
         }
     }

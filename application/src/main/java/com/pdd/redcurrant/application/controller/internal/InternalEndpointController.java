@@ -1,8 +1,8 @@
 package com.pdd.redcurrant.application.controller.internal;
 
 import com.pdd.redcurrant.application.annotations.ExcludeFromJacocoGeneratedReport;
-import com.pdd.redcurrant.domain.data.MockDto;
 import com.pdd.redcurrant.domain.data.RequestDto;
+import com.pdd.redcurrant.domain.data.ResponseDto;
 import com.pdd.redcurrant.domain.ports.api.StoredProcedureServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -62,7 +62,7 @@ public class InternalEndpointController {
     }
 
     @PostMapping(path = "solace/sync")
-    public MockDto testSync(@RequestBody MockDto request) {
+    public ResponseDto testSync(@RequestBody RequestDto request) {
         try {
             String message = MapperUtils.toString(request);
             log.info("Publishing message: {}", message);
@@ -78,7 +78,7 @@ public class InternalEndpointController {
 
             // Check if the response message is not null and return its body
             if (responseMessage instanceof TextMessage textMessage) {
-                return MapperUtils.convert(textMessage, MockDto.class);
+                return MapperUtils.convert(textMessage, ResponseDto.class);
             }
             else {
                 log.warn("No response received for message: {}", message);

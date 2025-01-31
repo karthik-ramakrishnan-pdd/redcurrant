@@ -1,11 +1,11 @@
 package com.pdd.redcurrant.domain.ports.api;
 
-import com.pdd.redcurrant.domain.data.MockDto;
+import com.pdd.redcurrant.domain.data.ResponseDto;
 
 public interface SolaceServicePort {
 
     void process(String message);
 
-    MockDto processAndReturn(String message);
+    ResponseDto processAndReturn(String message);
 
 }
