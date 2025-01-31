@@ -37,11 +37,11 @@ public class InternalEndpointController {
 
     private final JmsTemplate jmsTemplate;
 
-    @Value("${solace.topic.test.sync}")
-    private String topicSync;
+    @Value("${solace.gateway.queue_name}")
+    private String queueName;
 
-    @Value("${solace.topic.test.async}")
-    private String topicAsync;
+    @Value("${solace.gateway.topic_id}")
+    private String topicId;
 
     @GetMapping(path = "procedure/{name}")
     public String fetch(@PathVariable(name = "name") String name,
@@ -53,7 +53,7 @@ public class InternalEndpointController {
     public void testAsync(@RequestBody RequestDto request) {
         try {
             String message = MapperUtils.toString(request);
-            jmsTemplate.convertAndSend(topicAsync, message);
+            jmsTemplate.convertAndSend(topicId, message);
             log.info("Published: {}", message);
         }
         catch (Exception ex) {
@@ -68,7 +68,7 @@ public class InternalEndpointController {
             log.info("Publishing message: {}", message);
 
             // Send the message and wait for the response
-            Message responseMessage = jmsTemplate.sendAndReceive(topicSync, (Session session) -> {
+            Message responseMessage = jmsTemplate.sendAndReceive(queueName, (Session session) -> {
                 TextMessage textMessage = session.createTextMessage(message);
                 // Set preferred correlation ID
                 textMessage.setJMSCorrelationID(UUID.randomUUID().toString());

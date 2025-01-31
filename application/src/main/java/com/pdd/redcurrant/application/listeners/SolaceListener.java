@@ -18,7 +18,7 @@ public class SolaceListener {
 
     private final SolaceServicePort solaceService;
 
-    @JmsListener(destination = "${solace.topic.test.async}", containerFactory = "topicListenerContainerFactory")
+    @JmsListener(destination = "${solace.gateway.topic_id}", containerFactory = "topicListenerContainerFactory")
     public void handleAsync(String message) {
         try {
             log.info("Received: {}", message);
@@ -29,7 +29,7 @@ public class SolaceListener {
         }
     }
 
-    @JmsListener(destination = "${solace.queue.test.sync}", containerFactory = "queueListenerContainerFactory")
+    @JmsListener(destination = "${solace.gateway.queue_name}", containerFactory = "queueListenerContainerFactory")
     public void handleSync(Message message, Session session) {
         if (!(message instanceof TextMessage)) {
             log.warn("Obtained message is not supported: {}", message);
