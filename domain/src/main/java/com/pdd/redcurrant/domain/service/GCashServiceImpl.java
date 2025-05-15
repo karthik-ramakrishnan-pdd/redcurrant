@@ -13,6 +13,11 @@ public class GCashServiceImpl implements GCashServicePort {
     // private final GCashMapper gCashMapper;
 
     @Override
+    public ResponseDto send(RequestDto request) {
+        return null;
+    }
+
+    @Override
     public ResponseDto preSendTxn(RequestDto request) {
         captureEntry(request);
         return null;
