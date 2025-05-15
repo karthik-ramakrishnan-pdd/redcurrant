@@ -62,7 +62,7 @@ public class InternalEndpointController {
     @GetMapping(path = "procedure/{name}")
     public String fetch(@PathVariable(name = "name") String name,
             @RequestParam(name = "params", required = false) List<String> params) {
-        return storedProcedureService.fetch(name, params != null ? params.toArray() : new Object[0]);
+        return storedProcedureService.fetch(name, (params != null) ? params.toArray() : new Object[0]);
     }
 
     /**
