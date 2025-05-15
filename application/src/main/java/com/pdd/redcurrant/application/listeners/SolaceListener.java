@@ -11,6 +11,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
+/**
+ * This is the **core entry point** of the Redcurrant project.
+ * <p>
+ * It listens to incoming messages from Solace topics and queues using Spring JMS. Based
+ * on whether the communication is asynchronous or synchronous:
+ * <ul>
+ * <li>{@code handleAsync} consumes and processes fire-and-forget style messages.</li>
+ * <li>{@code handleSync} consumes a request and sends a reply message back.</li>
+ * </ul>
+ * <p>
+ * The actual business logic is delegated to {@link SolaceServicePort}, which should be
+ * implemented by services using the Redcurrant project.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -18,6 +31,11 @@ public class SolaceListener {
 
     private final SolaceServicePort solaceService;
 
+    /**
+     * Handles asynchronous (fire-and-forget) messages sent to a Solace topic. The message
+     * is passed directly to the service layer for processing.
+     * @param message The raw JSON payload received from the Solace topic.
+     */
     @JmsListener(destination = "${solace.gateway.topic_id}", containerFactory = "topicListenerContainerFactory")
     public void handleAsync(String message) {
         try {
@@ -25,10 +43,17 @@ public class SolaceListener {
             solaceService.process(message);
         }
         catch (Exception ex) {
+            log.error("Error processing async message: {}", ex.getMessage());
             throw new RuntimeException(ex);
         }
     }
 
+    /**
+     * Handles synchronous request-response messages sent to a Solace queue. It processes
+     * the request and sends the response to the reply-to destination.
+     * @param message The JMS message received from the Solace queue.
+     * @param session The JMS session used to create and send the response.
+     */
     @JmsListener(destination = "${solace.gateway.queue_name}", containerFactory = "queueListenerContainerFactory")
     public void handleSync(Message message, Session session) {
         if (!(message instanceof TextMessage)) {

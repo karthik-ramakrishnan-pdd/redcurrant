@@ -25,6 +25,16 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * This controller is intended **strictly for internal testing and validation** purposes
+ * within the Redcurrant project.
+ * <p>
+ * It contains mock integrations for: - Executing stored procedures directly - Sending
+ * messages over Solace (sync/async)
+ * <p>
+ * ⚠️ **Note:** These are mock implementations to assist development and testing. Actual
+ * logic should be implemented in services that consume the Redcurrant library.
+ */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "v1/internal")
@@ -43,12 +53,22 @@ public class InternalEndpointController {
     @Value("${solace.gateway.topic_id}")
     private String topicId;
 
+    /**
+     * Fetches the result of a stored procedure with optional parameters.
+     * @param name The name of the stored procedure to execute.
+     * @param params Optional list of parameters for the procedure.
+     * @return The stringified result of the stored procedure.
+     */
     @GetMapping(path = "procedure/{name}")
     public String fetch(@PathVariable(name = "name") String name,
             @RequestParam(name = "params", required = false) List<String> params) {
-        return storedProcedureService.fetch(name, params.toArray());
+        return storedProcedureService.fetch(name, params != null ? params.toArray() : new Object[0]);
     }
 
+    /**
+     * Sends a mock message asynchronously over Solace for internal testing.
+     * @param request The mock request payload to send.
+     */
     @PostMapping(path = "solace/async")
     public void testAsync(@RequestBody RequestDto request) {
         try {
@@ -57,35 +77,41 @@ public class InternalEndpointController {
             log.info("Published: {}", message);
         }
         catch (Exception ex) {
+            log.error("Failed to publish async message: {}", ex.getMessage());
             throw new RuntimeException(ex);
         }
     }
 
+    /**
+     * Sends a mock message synchronously over Solace and waits for a response.
+     * @param request The mock request payload to send.
+     * @return The response DTO received from the Solace queue (or null if none).
+     */
     @PostMapping(path = "solace/sync")
     public ResponseDto testSync(@RequestBody RequestDto request) {
         try {
             String message = MapperUtils.toString(request);
             log.info("Publishing message: {}", message);
 
-            // Send the message and wait for the response
+            // Send the message and wait for a response
             Message responseMessage = jmsTemplate.sendAndReceive(queueName, (Session session) -> {
                 TextMessage textMessage = session.createTextMessage(message);
-                // Set preferred correlation ID
                 textMessage.setJMSCorrelationID(UUID.randomUUID().toString());
                 return textMessage;
             });
+
             log.info("Received response for publishing message: {}", message);
 
-            // Check if the response message is not null and return its body
             if (responseMessage instanceof TextMessage textMessage) {
                 return MapperUtils.convert(textMessage, ResponseDto.class);
             }
             else {
                 log.warn("No response received for message: {}", message);
-                return null; // Handle null case appropriately
+                return null;
             }
         }
         catch (JmsException ex) {
+            log.error("Failed to publish sync message: {}", ex.getMessage());
             throw new RuntimeException(ex);
         }
     }
