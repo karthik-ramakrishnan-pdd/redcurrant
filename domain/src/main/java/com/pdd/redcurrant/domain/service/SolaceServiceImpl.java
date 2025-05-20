@@ -2,7 +2,6 @@ package com.pdd.redcurrant.domain.service;
 
 import com.pdd.redcurrant.domain.data.ResponseDto;
 import com.pdd.redcurrant.domain.data.request.BaseRequestDto;
-import com.pdd.redcurrant.domain.data.request.RequestDto;
 import com.pdd.redcurrant.domain.ports.api.ServiceRegistryPort;
 import com.pdd.redcurrant.domain.ports.api.SolaceServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
@@ -41,9 +40,20 @@ public class SolaceServiceImpl implements SolaceServicePort {
 
     @Override
     public ResponseDto processAndReturn(String message) {
-        var request = MapperUtils.convert(message, RequestDto.class);
-        log.info("Received request: {}", MapperUtils.toString(request));
-        return ResponseDto.builder().statusCode("200").statusDesc("SUCCESS").build();
+        var request = MapperUtils.convert(message, BaseRequestDto.class);
+
+        // Validate using javax.validation.Validator
+        Set<ConstraintViolation<BaseRequestDto>> violations = validator.validate(request);
+
+        if (!violations.isEmpty()) {
+            StringBuilder sb = new StringBuilder("Validation failed: ");
+            for (ConstraintViolation<BaseRequestDto> violation : violations) {
+                sb.append(violation.getPropertyPath()).append(" ").append(violation.getMessage()).append("; ");
+            }
+            throw new IllegalArgumentException(sb.toString());
+        }
+
+        return serviceRegistry.invoke(request.getRoutingKey(), request.getMethod(), request.toString());
     }
 
 }
