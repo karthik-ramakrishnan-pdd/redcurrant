@@ -52,27 +52,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith({ SpringExtension.class })
 class ServiceRegistryTest {
 
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean
-        public ObjectMapper objectMapper() {
-            return new ObjectMapper();
-        }
-
-        @Bean
-        public ServiceRegistry servicePortRegistry(ApplicationContext context) {
-            return new ServiceRegistry(context);
-        }
-
-        @Bean
-        @Partner(PartnerConstants.PARTNER_GCASH)
-        public GCashServicePort gcashServicePort() {
-            return Mockito.mock(GCashServicePort.class);
-        }
-
-    }
-
     @Autowired
     private ServiceRegistry registry;
 
@@ -232,6 +211,27 @@ class ServiceRegistryTest {
 
         registry.invoke(PartnerConstants.PARTNER_GCASH, "sendTxn", json2);
         Assertions.assertEquals(initialCacheSize, registry.getMethodCacheSize());
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+
+        @Bean
+        protected ObjectMapper objectMapper() {
+            return new ObjectMapper();
+        }
+
+        @Bean
+        protected ServiceRegistry servicePortRegistry(ApplicationContext context) {
+            return new ServiceRegistry(context);
+        }
+
+        @Bean
+        @Partner(PartnerConstants.PARTNER_GCASH)
+        protected GCashServicePort gcashServicePort() {
+            return Mockito.mock(GCashServicePort.class);
+        }
+
     }
 
 }

@@ -108,9 +108,8 @@ class SolaceServiceTest {
 
             Mockito.when(validator.validate(dto)).thenReturn(Set.of(violation));
 
-            IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
-                solaceService.process(invalidJson);
-            });
+            IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class,
+                    () -> solaceService.process(invalidJson));
 
             Assertions.assertTrue(exception.getMessage().contains("Validation failed:"));
             Assertions.assertTrue(exception.getMessage().contains("method must not be null"));

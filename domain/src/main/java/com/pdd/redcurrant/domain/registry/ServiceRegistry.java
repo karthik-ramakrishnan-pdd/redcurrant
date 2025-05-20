@@ -98,8 +98,8 @@ public class ServiceRegistry implements ServiceRegistryPort {
         try {
             deserializedDto = MapperUtils.convert(rawJson, paramType);
         }
-        catch (Exception e) {
-            throw new IllegalArgumentException("JSON conversion failed for " + paramType.getSimpleName(), e);
+        catch (Exception ex) {
+            throw new IllegalArgumentException("JSON conversion failed for " + paramType.getSimpleName(), ex);
         }
 
         try {
@@ -107,11 +107,11 @@ public class ServiceRegistry implements ServiceRegistryPort {
             T result = (T) method.invoke(service, deserializedDto);
             return result;
         }
-        catch (IllegalAccessException e) {
-            throw new IllegalStateException("Access denied for method: " + methodName, e);
+        catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Access denied for method: " + methodName, ex);
         }
-        catch (InvocationTargetException e) {
-            throw new RuntimeException("Invocation failed for: " + methodName, e.getCause());
+        catch (InvocationTargetException ex) {
+            throw new RuntimeException("Invocation failed for: " + methodName, ex.getCause());
         }
     }
 
@@ -155,10 +155,12 @@ public class ServiceRegistry implements ServiceRegistryPort {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (!(o instanceof MethodSignature))
+            }
+            if (!(o instanceof MethodSignature)) {
                 return false;
+            }
             MethodSignature that = (MethodSignature) o;
             return serviceClass.equals(that.serviceClass) && methodName.equals(that.methodName);
         }
