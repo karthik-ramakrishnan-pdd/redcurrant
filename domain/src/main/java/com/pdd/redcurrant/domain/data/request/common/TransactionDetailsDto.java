@@ -1,18 +1,24 @@
-package com.pdd.redcurrant.domain.data.common;
+package com.pdd.redcurrant.domain.data.request.common;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pdd.redcurrant.domain.annotations.StandardJson;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@StandardJson
 public class TransactionDetailsDto {
 
-    private String txnRefNum;
+    @JsonAlias("txnRefNo")
+    private String txnRefNo;
 
-    private String agentRefNum;
+    @JsonAlias("agentRefNum")
+    private String agentRefNo;
 
     private String txnValueDate;
 

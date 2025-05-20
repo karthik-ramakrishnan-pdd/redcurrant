@@ -1,13 +1,17 @@
-package com.pdd.redcurrant.domain.data.common;
+package com.pdd.redcurrant.domain.data.request.common;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pdd.redcurrant.domain.annotations.StandardJson;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@StandardJson
 public class ServiceInfoDto {
 
     private String txnType;

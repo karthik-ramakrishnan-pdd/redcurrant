@@ -1,24 +1,38 @@
 package com.pdd.redcurrant.domain.ports.api;
 
-import com.pdd.redcurrant.domain.data.RequestDto;
-import com.pdd.redcurrant.domain.data.ResponseDto;
+import com.pdd.redcurrant.domain.annotations.Partner;
+import com.pdd.redcurrant.domain.constants.PartnerConstants;
+import com.pdd.redcurrant.domain.data.request.BankRequestDto;
+import com.pdd.redcurrant.domain.data.request.CancelTxnRequestDto;
+import com.pdd.redcurrant.domain.data.request.PartnerRatesRequestDto;
+import com.pdd.redcurrant.domain.data.request.RequestDto;
+import com.pdd.redcurrant.domain.data.request.VostroBalEnquiryRequestDto;
+import com.pdd.redcurrant.domain.data.response.AccountDetailsResponseDto;
+import com.pdd.redcurrant.domain.data.response.BankResponseDto;
+import com.pdd.redcurrant.domain.data.response.CancelTxnResponseDto;
+import com.pdd.redcurrant.domain.data.response.EnquiryResponseDto;
+import com.pdd.redcurrant.domain.data.response.PartnerRatesResponseDto;
+import com.pdd.redcurrant.domain.data.response.PreSendTxnResponseDto;
+import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
+import com.pdd.redcurrant.domain.data.response.VostroBalEnquiryResponseDto;
 
+@Partner(PartnerConstants.PARTNER_GCASH)
 public interface GCashServicePort {
 
-    ResponseDto send(RequestDto request);
+    SendTxnResponseDto sendTxn(RequestDto request);
 
-    ResponseDto preSendTxn(RequestDto request);
+    PreSendTxnResponseDto preSendTxn(RequestDto request);
 
-    ResponseDto enquiryTxn(RequestDto request);
+    EnquiryResponseDto enquiryTxn(RequestDto request);
 
-    ResponseDto vostroBalEnquiry(RequestDto request);
+    VostroBalEnquiryResponseDto vostroBalEnquiry(VostroBalEnquiryRequestDto request);
 
-    ResponseDto fetchAcctDtls(RequestDto request);
+    AccountDetailsResponseDto fetchAcctDtls(RequestDto request);
 
-    ResponseDto bankslist(RequestDto request);
+    BankResponseDto bankslist(BankRequestDto request);
 
-    ResponseDto getPartnerRates(RequestDto request);
+    PartnerRatesResponseDto getPartnerRates(PartnerRatesRequestDto request);
 
-    ResponseDto cancelTxn(RequestDto request);
+    CancelTxnResponseDto cancelTxn(CancelTxnRequestDto request);
 
 }

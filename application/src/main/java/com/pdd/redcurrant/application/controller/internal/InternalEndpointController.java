@@ -1,8 +1,8 @@
 package com.pdd.redcurrant.application.controller.internal;
 
 import com.pdd.redcurrant.application.annotations.ExcludeFromJacocoGeneratedReport;
-import com.pdd.redcurrant.domain.data.RequestDto;
 import com.pdd.redcurrant.domain.data.ResponseDto;
+import com.pdd.redcurrant.domain.data.request.RequestDto;
 import com.pdd.redcurrant.domain.ports.api.StoredProcedureServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
