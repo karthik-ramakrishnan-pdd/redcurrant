@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: Gcash Service API
+  version: 1.0.0
+  description: Gcash service Api is responsible for submit transactions using Gcash partner.
+
+paths:
+  /fund/remit/standard-push/push:
+    post:
+      summary: Send remittance straight to GCash wallet
+      operationId: pushRemit
+      tags:
+        - "gcash-remit"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushRemittanceRequest'
+      responses:
+        "200":
+          description: Successful or failed response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushRemittanceResponse'
+
+  /partner-cashin/balance:
+    post:
+      summary: Get partner wallet balance
+      operationId: getWalletBalance
+      tags:
+        - "gcash-balance"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BalanceRequest'
+      responses:
+        '200':
+          description: Success balance response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        default:
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceErrorResponse'
+
+components:
+  schemas:
+    PushRemittanceRequest:
+      type: object
+      properties:
+        request:
+          type: object
+          properties:
+            head:
+              $ref: '#/components/schemas/RequestHead'
+            body:
+              $ref: '#/components/schemas/RequestBody'
+        signature:
+          type: string
+
+    RequestHead:
+      type: object
+      properties:
+        version:
+          type: string
+        function:
+          type: string
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        reqTime:
+          type: string
+          format: date-time
+        reqMsgId:
+          type: string
+        reserve:
+          type: object
+          additionalProperties: true
+
+    RequestBody:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - validate
+            - commit
+        remcoId:
+          type: string
+        requestId:
+          type: string
+        gcashAccountCountryCode:
+          type: string
+        gcashAccount:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Amount'
+        complianceInfo:
+          $ref: '#/components/schemas/ComplianceInfo'
+        extendInfo:
+          $ref: '#/components/schemas/ExtendInfo'
+
+    ComplianceInfo:
+      type: object
+      properties:
+        originatingCountry:
+          type: string
+        senderInfo:
+          $ref: '#/components/schemas/SenderInfo'
+        receiverInfo:
+          $ref: '#/components/schemas/ReceiverInfo'
+
+    SenderInfo:
+      type: object
+      properties:
+        firstName:
+          type: string
+        middleName:
+          type: string
+        lastName:
+          type: string
+        countryOfBirth:
+          type: string
+        dateOfBirth:
+          type: string
+        relationToReceiver:
+          type: string
+        sourceOfIncome:
+          type: string
+        idInfo:
+          $ref: '#/components/schemas/IdInfo'
+
+    ReceiverInfo:
+      type: object
+      properties:
+        firstName:
+          type: string
+        middleName:
+          type: string
+        lastName:
+          type: string
+
+    IdInfo:
+      type: object
+      properties:
+        idType:
+          type: string
+          enum:
+            - DRIVER_LICENSE
+            - EMPLOYMENT_ID
+            - PASSPORT_ID
+            - STUDENT_ID
+            - NATIONAL_ID
+            - OTHER_ID
+            - GOVERNMENT_ID
+        idNumber:
+          type: string
+
+    ExtendInfo:
+      type: object
+      properties:
+        storeLocation:
+          type: string
+        refNumber:
+          type: string
+        cashInRemit:
+          type: boolean
+
+    Amount:
+      type: object
+      properties:
+        currency:
+          type: string
+        value:
+          type: string
+
+    PushRemittanceResponse:
+      type: object
+      properties:
+        response:
+          type: object
+          properties:
+            head:
+              $ref: '#/components/schemas/ResponseHead'
+            body:
+              $ref: '#/components/schemas/ResponseBody'
+        signature:
+          type: string
+
+    ResponseHead:
+      type: object
+      properties:
+        version:
+          type: string
+        function:
+          type: string
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        respTime:
+          type: string
+          format: date-time
+        reqMsgId:
+          type: string
+        reserve:
+          type: object
+          additionalProperties: true
+
+    ResponseBody:
+      allOf:
+        - $ref: '#/components/schemas/RequestBody'
+        - type: object
+          properties:
+            transactionId:
+              type: string
+              nullable: true
+            resultInfo:
+              $ref: '#/components/schemas/ResultInfo'
+
+    ResultInfo:
+      type: object
+      properties:
+        resultStatus:
+          type: string
+        resultCodeId:
+          type: string
+        resultCode:
+          type: string
+        resultMsg:
+          type: string
+
+    BalanceRequest:
+      type: object
+      required:
+        - from_wallet
+        - from_mpin
+      properties:
+        from_wallet:
+          type: string
+          description: Wallet name provided by Mynt
+        from_mpin:
+          type: string
+          description: Hashed or encrypted MPIN of the GCash partner wallet
+
+    BalanceResponse:
+        type: object
+        properties:
+          code:
+            type: string
+            description: 'Code for the result, "0" means success'
+            example: "0"
+          message:
+            type: string
+            description: Description of the status
+            example: Success
+          balance:
+            type: object
+            required:
+              - availableBalance
+            properties:
+              availableBalance:
+                type: string
+                description: Balance excluding reserved cash-in amounts
+            description: Present only if request is successful
+
+    BalanceErrorResponse:
+        type: object
+        properties:
+          code:
+            type: string
+            description: 'Code for the result'
+            example: "3"
+          message:
+            type: string
+            description: Description of the status
+            example: invalid pin

@@ -1,5 +1,7 @@
 package com.pdd.redcurrant.domain.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdd.redcurrant.domain.configuration.GcashPropertiesConfig;
 import com.pdd.redcurrant.domain.data.request.BankRequestDto;
 import com.pdd.redcurrant.domain.data.request.CancelTxnRequestDto;
 import com.pdd.redcurrant.domain.data.request.PartnerRatesRequestDto;
@@ -13,16 +15,27 @@ import com.pdd.redcurrant.domain.data.response.PartnerRatesResponseDto;
 import com.pdd.redcurrant.domain.data.response.PreSendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.VostroBalEnquiryResponseDto;
-import com.pdd.redcurrant.domain.mappers.GCashMapper;
-import com.pdd.redcurrant.domain.ports.api.GCashServicePort;
+import com.pdd.redcurrant.domain.mappers.GcashMapper;
+import com.pdd.redcurrant.domain.ports.api.GcashServicePort;
+import com.redcurrant.downstream.api.gcash.GcashBalanceApi;
+import com.redcurrant.downstream.api.gcash.GcashRemitApi;
+import com.redcurrant.downstream.dto.gcash.BalanceRequest;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.client.HttpStatusCodeException;
 
 @RequiredArgsConstructor
 @Slf4j
-public class GCashServiceImpl implements GCashServicePort {
+public class GcashServiceImpl implements GcashServicePort {
 
-    private final GCashMapper gCashMapper;
+    private final GcashBalanceApi gcashBalanceApi;
+
+    private final GcashRemitApi gcashRemitApi;
+
+    private final ObjectMapper objectMapper;
+
+    private final GcashPropertiesConfig gcashPropertiesConfig;
 
     @Override
     public SendTxnResponseDto sendTxn(RequestDto request) {
@@ -41,7 +54,16 @@ public class GCashServiceImpl implements GCashServicePort {
 
     @Override
     public VostroBalEnquiryResponseDto vostroBalEnquiry(VostroBalEnquiryRequestDto request) {
-        return null;
+        BalanceRequest balanceRequest = new BalanceRequest();
+        balanceRequest.setFromWallet(gcashPropertiesConfig.getWalletName());
+        balanceRequest.setFromMpin(gcashPropertiesConfig.getWalletPin());
+
+        try {
+            return GcashMapper.of(gcashBalanceApi.getWalletBalance(balanceRequest));
+        }
+        catch (HttpStatusCodeException ex) {
+            return GcashMapper.handleBalEnquiryException(ex, objectMapper);
+        }
     }
 
     @Override

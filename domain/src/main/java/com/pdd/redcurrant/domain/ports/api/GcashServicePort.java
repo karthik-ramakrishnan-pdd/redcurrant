@@ -17,7 +17,7 @@ import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.VostroBalEnquiryResponseDto;
 
 @Partner(PartnerConstants.PARTNER_GCASH)
-public interface GCashServicePort {
+public interface GcashServicePort {
 
     SendTxnResponseDto sendTxn(RequestDto request);
 
