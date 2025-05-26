@@ -88,7 +88,6 @@ public class GcashMapper {
 
         try {
             String requestBodyToSign = objectMapper.writeValueAsString(request);
-            log.info("🔐 JSON to sign:\n{}", requestBodyToSign);
 
             PrivateKey servicePrivateKey = RsaCryptoUtils.loadPrivateKey(gcashPropertiesConfig.getPrivateKey());
             String signature = RsaCryptoUtils.sign(requestBodyToSign, servicePrivateKey,
@@ -111,8 +110,6 @@ public class GcashMapper {
             String gcashResponseBody = objectMapper
                 .writeValueAsString(gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_RESPONSE));
             String gcashSignature = gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_SIGNATURE).asText();
-
-            log.info("🔍 JSON to verify:\n{}", gcashResponseBody);
 
             PublicKey publicKey = RsaCryptoUtils.loadPublicKey(config.getPublicKey());
             boolean verified = RsaCryptoUtils.verify(gcashResponseBody, gcashSignature, publicKey,
