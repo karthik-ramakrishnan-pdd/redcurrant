@@ -107,7 +107,8 @@ public class GcashMapper {
             GcashResponseCapture responseCapture) {
         try {
             JsonNode gcashResponse = objectMapper.readTree(responseCapture.get());
-            String gcashResponseBody = objectMapper.writeValueAsString(gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_RESPONSE));
+            String gcashResponseBody = objectMapper
+                .writeValueAsString(gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_RESPONSE));
             String gcashSignature = gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_SIGNATURE).asText();
 
             log.info("🔍 JSON to verify:\n{}", gcashResponseBody);
@@ -117,7 +118,8 @@ public class GcashMapper {
                     config.getKeyAlgorithm());
 
             if (!verified) {
-                throw new GcashException(GCASH_INVALID_RESPONSE_CODE, "Signature verification failed – response may be tampered");
+                throw new GcashException(GCASH_INVALID_RESPONSE_CODE,
+                        "Signature verification failed – response may be tampered");
             }
         }
         catch (JsonProcessingException ex) {
@@ -126,7 +128,8 @@ public class GcashMapper {
     }
 
     public SendTxnResponseDto of(PushRemittanceResponse response) {
-        if (!GCASH_REMIT_SUCCESS_RESPONSE_CODE.equals(response.getResponse().getBody().getResultInfo().getResultCode())) {
+        if (!GCASH_REMIT_SUCCESS_RESPONSE_CODE
+            .equals(response.getResponse().getBody().getResultInfo().getResultCode())) {
             throw new GcashException(response.getResponse().getBody().getResultInfo().getResultCodeId(),
                     response.getResponse().getBody().getResultInfo().getResultMsg());
         }
@@ -182,7 +185,8 @@ public class GcashMapper {
 
         String value = transactionDetailsDto.getToReceiver().getAmountToSend();
         if (!value.matches("^\\d+(\\.\\d{1,2})?$")) {
-            throw new GcashException(GCASH_INVALID_REQUEST_FORMAT, "Amount must have up to two decimal places (e.g., 100.00)");
+            throw new GcashException(GCASH_INVALID_REQUEST_FORMAT,
+                    "Amount must have up to two decimal places (e.g., 100.00)");
         }
 
         Amount amount = new Amount();
