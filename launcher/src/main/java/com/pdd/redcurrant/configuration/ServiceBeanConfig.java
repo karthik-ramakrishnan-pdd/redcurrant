@@ -2,6 +2,7 @@ package com.pdd.redcurrant.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pdd.redcurrant.domain.configuration.GcashPropertiesConfig;
+import com.pdd.redcurrant.domain.configuration.GcashResponseCapture;
 import com.pdd.redcurrant.domain.ports.api.GcashServicePort;
 import com.pdd.redcurrant.domain.ports.api.SolaceServicePort;
 import com.pdd.redcurrant.domain.ports.api.StoredProcedureServicePort;
@@ -31,8 +32,10 @@ public class ServiceBeanConfig {
 
     @Bean
     public GcashServicePort gCashService(GcashBalanceApi gcashBalanceApi, GcashRemitApi gcashRemitApi,
-            ObjectMapper objectMapper, GcashPropertiesConfig gcashPropertiesConfig) {
-        return new GcashServiceImpl(gcashBalanceApi, gcashRemitApi, objectMapper, gcashPropertiesConfig);
+            ObjectMapper objectMapper, GcashPropertiesConfig gcashPropertiesConfig,
+            GcashResponseCapture responseCapture) {
+        return new GcashServiceImpl(gcashBalanceApi, gcashRemitApi, objectMapper, gcashPropertiesConfig,
+                responseCapture);
     }
 
 }

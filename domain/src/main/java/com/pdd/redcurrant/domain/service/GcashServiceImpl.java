@@ -2,6 +2,7 @@ package com.pdd.redcurrant.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pdd.redcurrant.domain.configuration.GcashPropertiesConfig;
+import com.pdd.redcurrant.domain.configuration.GcashResponseCapture;
 import com.pdd.redcurrant.domain.data.request.BankRequestDto;
 import com.pdd.redcurrant.domain.data.request.CancelTxnRequestDto;
 import com.pdd.redcurrant.domain.data.request.PartnerRatesRequestDto;
@@ -21,6 +22,7 @@ import com.redcurrant.downstream.api.gcash.GcashBalanceApi;
 import com.redcurrant.downstream.api.gcash.GcashRemitApi;
 import com.redcurrant.downstream.dto.gcash.BalanceRequest;
 
+import com.redcurrant.downstream.dto.gcash.PushRemittanceResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -37,9 +39,14 @@ public class GcashServiceImpl implements GcashServicePort {
 
     private final GcashPropertiesConfig gcashPropertiesConfig;
 
+    private final GcashResponseCapture gcashResponseCapture;
+
     @Override
     public SendTxnResponseDto sendTxn(RequestDto request) {
-        return null;
+        PushRemittanceResponse response = gcashRemitApi
+            .pushRemit(GcashMapper.of(request, gcashPropertiesConfig, objectMapper));
+        GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+        return GcashMapper.of(response);
     }
 
     @Override

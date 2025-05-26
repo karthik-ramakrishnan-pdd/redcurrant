@@ -2,10 +2,8 @@ package com.pdd.redcurrant.domain.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
@@ -19,29 +17,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Configuration
-@Slf4j
 public class RestTemplateConfig {
 
-    private static final ThreadLocal<String> rawJsonHolder = new ThreadLocal<>();
-
-    public static String getLastRawJson() {
-        return rawJsonHolder.get();
-    }
-
     @Bean
-    public RestTemplate restTemplate(ObjectMapper objectMapper) {
+    public RestTemplate gcashRestTemplate(ObjectMapper objectMapper, GcashResponseCapture capture) {
         RestTemplate template = new RestTemplate();
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(objectMapper);
-
         template.getMessageConverters().removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
         template.getMessageConverters().addFirst(converter);
 
         template.setInterceptors(List.of((request, body, execution) -> {
             ClientHttpResponse original = execution.execute(request, body);
             byte[] buffered = original.getBody().readAllBytes();
-            rawJsonHolder.set(new String(buffered, StandardCharsets.UTF_8));
+            capture.set(new String(buffered, StandardCharsets.UTF_8));
             return new ClientHttpResponseWrapper(original, buffered);
         }));
 
