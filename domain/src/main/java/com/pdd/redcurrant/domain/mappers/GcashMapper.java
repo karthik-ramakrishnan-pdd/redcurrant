@@ -9,6 +9,7 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import com.pdd.redcurrant.domain.configuration.GcashPropertiesConfig;
 import com.pdd.redcurrant.domain.configuration.GcashResponseCapture;
 import com.pdd.redcurrant.domain.data.request.RequestDto;
+import com.pdd.redcurrant.domain.constants.SourceOfIncomeEnum;
 import com.pdd.redcurrant.domain.data.request.common.ReceiverDto;
 import com.pdd.redcurrant.domain.data.request.common.TransactionDetailsDto;
 import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
@@ -164,7 +165,9 @@ public class GcashMapper {
         sender.setCountryOfBirth(getIso3CountryCodeFromName(rcRequest.getSender().getSenderPlaceOfBirth()));
         sender.setDateOfBirth(convertDobToGcashFormat(rcRequest.getSender().getSenderDOB()));
         sender.setRelationToReceiver(rcRequest.getSender().getSenderBeneRelationship());
-        sender.setSourceOfIncome(rcRequest.getTransaction().getSourceOfIncomeDesc());
+        sender
+            .setSourceOfIncome(SourceOfIncomeEnum.fromCodeOrDefault(rcRequest.getTransaction().getSourceOfIncomeCode())
+                .getDescription());
         sender.setIdInfo(idInfo);
         return sender;
     }
