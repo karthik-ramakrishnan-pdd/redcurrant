@@ -12,6 +12,8 @@ import com.pdd.redcurrant.domain.data.request.RequestDto;
 import com.pdd.redcurrant.domain.constants.SourceOfIncomeEnum;
 import com.pdd.redcurrant.domain.data.request.common.ReceiverDto;
 import com.pdd.redcurrant.domain.data.request.common.TransactionDetailsDto;
+import com.pdd.redcurrant.domain.data.response.AccountDetailsResponseDto;
+import com.pdd.redcurrant.domain.data.response.EnquiryResponseDto;
 import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.VostroBalEnquiryResponseDto;
 import com.pdd.redcurrant.domain.exception.GcashException;
@@ -29,6 +31,14 @@ import com.redcurrant.downstream.dto.gcash.IdInfo;
 import com.redcurrant.downstream.dto.gcash.ReceiverInfo;
 import com.redcurrant.downstream.dto.gcash.RequestBody;
 import com.redcurrant.downstream.dto.gcash.RequestHead;
+import com.redcurrant.downstream.dto.gcash.RemittanceStatusRequest;
+import com.redcurrant.downstream.dto.gcash.RemittanceStatusRequestRequest;
+import com.redcurrant.downstream.dto.gcash.RemittanceStatusRequestRequestBody;
+import com.redcurrant.downstream.dto.gcash.RemittanceStatusResponse;
+import com.redcurrant.downstream.dto.gcash.ValidateAccountRequest;
+import com.redcurrant.downstream.dto.gcash.ValidateAccountRequestRequest;
+import com.redcurrant.downstream.dto.gcash.ValidateAccountRequestRequestBody;
+import com.redcurrant.downstream.dto.gcash.ValidateAccountResponse;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -51,7 +61,7 @@ public class GcashMapper {
 
     private static final String GCASH_INVALID_REQUEST_FORMAT = "INVALID_REQUEST_FORMAT";
 
-    private static final String GCASH_REMIT_SUCCESS_RESPONSE_CODE = "00000000";
+    private static final String GCASH_SUCCESS_RESPONSE_CODE = "S";
 
     private static final DateTimeFormatter DOB_RC_INPUT_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy HH:mm:ss");
 
@@ -80,23 +90,54 @@ public class GcashMapper {
         }
     }
 
-    public PushRemittanceRequest of(RequestDto rcRequest, GcashPropertiesConfig gcashPropertiesConfig,
+    public PushRemittanceRequest toPushRemitRequest(RequestDto rcRequest, GcashPropertiesConfig gcashPropertiesConfig,
             ObjectMapper objectMapper) {
         PushRemittanceRequestRequest request = new PushRemittanceRequestRequest();
         request.setHead(buildRequestHead(gcashPropertiesConfig));
         request.setBody(buildRequestBody(rcRequest, gcashPropertiesConfig));
 
+        PushRemittanceRequest fullRequest = new PushRemittanceRequest();
+        fullRequest.setRequest(request);
+        fullRequest.setSignature(signRequest(objectMapper, request, gcashPropertiesConfig));
+        return fullRequest;
+    }
+
+    public RemittanceStatusRequest toGetRemittanceStatusRequest(RequestDto rcRequest,
+            GcashPropertiesConfig gcashPropertiesConfig, ObjectMapper objectMapper) {
+        RemittanceStatusRequestRequest request = new RemittanceStatusRequestRequest();
+        request.setHead(buildRequestHead(gcashPropertiesConfig));
+        request.setBody(new RemittanceStatusRequestRequestBody().requestId(rcRequest.getTransaction().getTxnRefNo())
+            .remcoId(gcashPropertiesConfig.getClientId()));
+        RemittanceStatusRequest fullRequest = new RemittanceStatusRequest();
+        fullRequest.setRequest(request);
+        fullRequest.setSignature(signRequest(objectMapper, request, gcashPropertiesConfig));
+        return fullRequest;
+    }
+
+    public ValidateAccountRequest toValidateAccountRequest(RequestDto rcRequest,
+            GcashPropertiesConfig gcashPropertiesConfig, ObjectMapper objectMapper) {
+        ValidateAccountRequestRequest request = new ValidateAccountRequestRequest();
+        request.setHead(buildRequestHead(gcashPropertiesConfig));
+
+        Phonenumber.PhoneNumber phoneNumber = parsePhoneNumber(
+                rcRequest.getTransaction().getOptedService().getBeneficiaryAccountNumber());
+        String gcashAccount = phoneNumber.getCountryCode() + "-" + phoneNumber.getNationalNumber();
+
+        request.setBody(new ValidateAccountRequestRequestBody().requestId(rcRequest.getTransaction().getTxnRefNo())
+            .remcoId(gcashPropertiesConfig.getClientId())
+            .gcashAccount(gcashAccount));
+        ValidateAccountRequest fullRequest = new ValidateAccountRequest();
+        fullRequest.setRequest(request);
+        fullRequest.setSignature(signRequest(objectMapper, request, gcashPropertiesConfig));
+        return fullRequest;
+    }
+
+    private String signRequest(ObjectMapper objectMapper, Object request, GcashPropertiesConfig gcashPropertiesConfig) {
         try {
             String requestBodyToSign = objectMapper.writeValueAsString(request);
 
             PrivateKey servicePrivateKey = RsaCryptoUtils.loadPrivateKey(gcashPropertiesConfig.getPrivateKey());
-            String signature = RsaCryptoUtils.sign(requestBodyToSign, servicePrivateKey,
-                    gcashPropertiesConfig.getKeyAlgorithm());
-
-            PushRemittanceRequest fullRequest = new PushRemittanceRequest();
-            fullRequest.setRequest(request);
-            fullRequest.setSignature(signature);
-            return fullRequest;
+            return RsaCryptoUtils.sign(requestBodyToSign, servicePrivateKey, gcashPropertiesConfig.getKeyAlgorithm());
         }
         catch (JsonProcessingException ex) {
             throw new GcashException(GCASH_INVALID_RESPONSE_CODE, "Unable to parse GCash request body");
@@ -126,8 +167,8 @@ public class GcashMapper {
     }
 
     public SendTxnResponseDto of(PushRemittanceResponse response) {
-        if (!GCASH_REMIT_SUCCESS_RESPONSE_CODE
-            .equals(response.getResponse().getBody().getResultInfo().getResultCode())) {
+        if (!GCASH_SUCCESS_RESPONSE_CODE
+            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus())) {
             throw new GcashException(response.getResponse().getBody().getResultInfo().getResultCodeId(),
                     response.getResponse().getBody().getResultInfo().getResultMsg());
         }
@@ -136,6 +177,26 @@ public class GcashMapper {
             .statusCode("0")
             .partnerRefNo(response.getResponse().getBody().getTransactionId())
             .build();
+    }
+
+    public EnquiryResponseDto of(RemittanceStatusResponse response) {
+        if (!GCASH_SUCCESS_RESPONSE_CODE
+            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus())) {
+            throw new GcashException(response.getResponse().getBody().getResultInfo().getResultCodeId(),
+                    response.getResponse().getBody().getResultInfo().getResultMsg());
+        }
+
+        return EnquiryResponseDto.builder().statusCode("0").build();
+    }
+
+    public AccountDetailsResponseDto of(ValidateAccountResponse response) {
+        if (!GCASH_SUCCESS_RESPONSE_CODE
+            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus())) {
+            throw new GcashException(response.getResponse().getBody().getResultInfo().getResultCodeId(),
+                    response.getResponse().getBody().getResultInfo().getResultMsg());
+        }
+
+        return AccountDetailsResponseDto.builder().statusCode("0").build();
     }
 
     private RequestHead buildRequestHead(GcashPropertiesConfig gcashPropertiesConfig) {
@@ -216,26 +277,23 @@ public class GcashMapper {
         RequestBody body = new RequestBody();
         body.setAction(RequestBody.ActionEnum.COMMIT);
         body.setRemcoId(gcashPropertiesConfig.getClientId());
-        body.requestId(UUID.randomUUID().toString());
+        body.requestId(rcRequest.getTransaction().getTxnRefNo());
         body.setComplianceInfo(buildComplianceInfo(rcRequest));
         body.setExtendInfo(buildExtendInfo(rcRequest));
         body.setAmount(buildAmount(rcRequest.getTransaction()));
-        return setGcashAccount(body, rcRequest.getTransaction().getOptedService().getBeneficiaryAccountNumber());
+        Phonenumber.PhoneNumber phoneNumber = parsePhoneNumber(
+                rcRequest.getTransaction().getOptedService().getBeneficiaryAccountNumber());
+        body.setGcashAccountCountryCode(String.valueOf(phoneNumber.getCountryCode()));
+        body.setGcashAccount(String.valueOf(phoneNumber.getNationalNumber()));
+        return body;
     }
 
-    private RequestBody setGcashAccount(RequestBody body, String accountNumber) {
+    private Phonenumber.PhoneNumber parsePhoneNumber(String phoneNumber) {
         try {
-            Phonenumber.PhoneNumber number = PhoneNumberUtil.getInstance().parse(accountNumber, null);
-
-            String countryCode = String.valueOf(number.getCountryCode());
-            String mobileNumber = String.valueOf(number.getNationalNumber());
-
-            body.setGcashAccountCountryCode(countryCode);
-            body.setGcashAccount(mobileNumber);
-            return body;
+            return PhoneNumberUtil.getInstance().parse(phoneNumber, null);
         }
         catch (NumberParseException ex) {
-            throw new GcashException(GCASH_INVALID_REQUEST_FORMAT, "Invalid phone number format: " + accountNumber);
+            throw new GcashException(GCASH_INVALID_REQUEST_FORMAT, "Invalid phone number format: " + phoneNumber);
         }
     }
 

@@ -23,6 +23,8 @@ import com.redcurrant.downstream.api.gcash.GcashRemitApi;
 import com.redcurrant.downstream.dto.gcash.BalanceRequest;
 
 import com.redcurrant.downstream.dto.gcash.PushRemittanceResponse;
+import com.redcurrant.downstream.dto.gcash.RemittanceStatusResponse;
+import com.redcurrant.downstream.dto.gcash.ValidateAccountResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -44,7 +46,7 @@ public class GcashServiceImpl implements GcashServicePort {
     @Override
     public SendTxnResponseDto sendTxn(RequestDto request) {
         PushRemittanceResponse response = gcashRemitApi
-            .pushRemit(GcashMapper.of(request, gcashPropertiesConfig, objectMapper));
+            .pushRemit(GcashMapper.toPushRemitRequest(request, gcashPropertiesConfig, objectMapper));
         GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
         return GcashMapper.of(response);
     }
@@ -56,7 +58,10 @@ public class GcashServiceImpl implements GcashServicePort {
 
     @Override
     public EnquiryResponseDto enquiryTxn(RequestDto request) {
-        return null;
+        RemittanceStatusResponse response = gcashRemitApi.getTransactionStatus(
+                GcashMapper.toGetRemittanceStatusRequest(request, gcashPropertiesConfig, objectMapper));
+        GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+        return GcashMapper.of(response);
     }
 
     @Override
@@ -75,7 +80,10 @@ public class GcashServiceImpl implements GcashServicePort {
 
     @Override
     public AccountDetailsResponseDto fetchAcctDtls(RequestDto request) {
-        return null;
+        ValidateAccountResponse response = gcashRemitApi
+            .validateAccount(GcashMapper.toValidateAccountRequest(request, gcashPropertiesConfig, objectMapper));
+        GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+        return GcashMapper.of(response);
     }
 
     @Override

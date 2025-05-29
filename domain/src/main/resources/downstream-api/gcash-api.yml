@@ -25,6 +25,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/PushRemittanceResponse'
 
+  /fund/remit/standard-push/remittanceTransactionStatus:
+    post:
+      summary: Query remittance transaction status
+      operationId: getTransactionStatus
+      tags:
+        - "gcash-remit"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemittanceStatusRequest'
+      responses:
+        '200':
+          description: Transaction status response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemittanceStatusResponse'
+
+  /fund/remit/standard-push/validateAccount:
+    post:
+      summary: Validate GCash Account
+      operationId: validateAccount
+      tags:
+        - "gcash-remit"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateAccountRequest'
+      responses:
+        '200':
+          description: GCash Account validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateAccountResponse'
+
   /partner-cashin/balance:
     post:
       summary: Get partner wallet balance
@@ -63,6 +103,44 @@ components:
               $ref: '#/components/schemas/RequestHead'
             body:
               $ref: '#/components/schemas/RequestBody'
+        signature:
+          type: string
+
+    RemittanceStatusRequest:
+      type: object
+      properties:
+        request:
+          type: object
+          properties:
+            head:
+              $ref: '#/components/schemas/RequestHead'
+            body:
+              type: object
+              properties:
+                remcoId:
+                  type: string
+                requestId:
+                  type: string
+        signature:
+          type: string
+
+    ValidateAccountRequest:
+      type: object
+      properties:
+        request:
+          type: object
+          properties:
+            head:
+              $ref: '#/components/schemas/RequestHead'
+            body:
+              type: object
+              properties:
+                remcoId:
+                  type: string
+                gcashAccount:
+                  type: string
+                requestId:
+                  type: string
         signature:
           type: string
 
@@ -193,6 +271,50 @@ components:
               $ref: '#/components/schemas/ResponseHead'
             body:
               $ref: '#/components/schemas/ResponseBody'
+        signature:
+          type: string
+
+    RemittanceStatusResponse:
+      type: object
+      properties:
+        response:
+          type: object
+          properties:
+            head:
+              $ref: '#/components/schemas/ResponseHead'
+            body:
+              type: object
+              properties:
+                resultInfo:
+                  $ref: '#/components/schemas/ResultInfo'
+                remcoId:
+                  type: string
+                requestId:
+                  type: string
+                queryTransId:
+                  type: string
+        signature:
+          type: string
+
+    ValidateAccountResponse:
+      type: object
+      properties:
+        response:
+          type: object
+          properties:
+            head:
+              $ref: '#/components/schemas/ResponseHead'
+            body:
+              type: object
+              properties:
+                resultInfo:
+                  $ref: '#/components/schemas/ResultInfo'
+                remcoId:
+                  type: string
+                requestId:
+                  type: string
+                gcashAccount:
+                  type: string
         signature:
           type: string
 
