@@ -21,7 +21,6 @@ import com.pdd.redcurrant.domain.ports.api.GcashServicePort;
 import com.redcurrant.downstream.api.gcash.GcashBalanceApi;
 import com.redcurrant.downstream.api.gcash.GcashRemitApi;
 import com.redcurrant.downstream.dto.gcash.BalanceRequest;
-
 import com.redcurrant.downstream.dto.gcash.PushRemittanceResponse;
 import com.redcurrant.downstream.dto.gcash.RemittanceStatusResponse;
 import com.redcurrant.downstream.dto.gcash.ValidateAccountResponse;
