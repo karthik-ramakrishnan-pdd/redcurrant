@@ -3,6 +3,7 @@ package com.pdd.redcurrant.domain.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pdd.redcurrant.domain.configuration.GcashPropertiesConfig;
 import com.pdd.redcurrant.domain.configuration.GcashResponseCapture;
+import com.pdd.redcurrant.domain.constants.RcResponseTemplateEnum;
 import com.pdd.redcurrant.domain.data.request.BankRequestDto;
 import com.pdd.redcurrant.domain.data.request.CancelTxnRequestDto;
 import com.pdd.redcurrant.domain.data.request.PartnerRatesRequestDto;
@@ -18,18 +19,18 @@ import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.VostroBalEnquiryResponseDto;
 import com.pdd.redcurrant.domain.mappers.GcashMapper;
 import com.pdd.redcurrant.domain.ports.api.GcashServicePort;
+import com.pdd.redcurrant.domain.utils.GcashUtils;
 import com.redcurrant.downstream.api.gcash.GcashBalanceApi;
 import com.redcurrant.downstream.api.gcash.GcashRemitApi;
 import com.redcurrant.downstream.dto.gcash.BalanceRequest;
+import com.redcurrant.downstream.dto.gcash.PushRemittanceRequest;
 import com.redcurrant.downstream.dto.gcash.PushRemittanceResponse;
 import com.redcurrant.downstream.dto.gcash.RemittanceStatusResponse;
 import com.redcurrant.downstream.dto.gcash.ValidateAccountResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.HttpStatusCodeException;
 
 @RequiredArgsConstructor
-@Slf4j
 public class GcashServiceImpl implements GcashServicePort {
 
     private final GcashBalanceApi gcashBalanceApi;
@@ -45,18 +46,16 @@ public class GcashServiceImpl implements GcashServicePort {
     @Override
     public SendTxnResponseDto sendTxn(RequestDto request) {
         try {
-            PushRemittanceResponse response = gcashRemitApi
-                .pushRemit(GcashMapper.toPushRemitRequest(request, gcashPropertiesConfig, objectMapper));
-            GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
-            return GcashMapper.toSendTxnResponse(response);
+            PushRemittanceRequest pushRemittanceRequest = GcashMapper.toPushRemitRequest(request, gcashPropertiesConfig,
+                    objectMapper);
+            PushRemittanceResponse pushRemittanceResponse = gcashRemitApi.pushRemit(pushRemittanceRequest);
+            GcashUtils.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+            return GcashMapper.toSendTxnResponse(pushRemittanceResponse);
         }
         catch (RuntimeException ex) {
-            return SendTxnResponseDto.builder()
-                .statusCode("100")
-                .statusDescription("Error")
-                .returnCode("101")
-                .returnDescription(ex.getMessage())
-                .build();
+            SendTxnResponseDto sendTxnResponse = SendTxnResponseDto.builder().build();
+            GcashUtils.mapToBaseResponse(sendTxnResponse, ex.getMessage(), RcResponseTemplateEnum.SEND_TXN_FAILURE);
+            return sendTxnResponse;
         }
 
     }
@@ -71,16 +70,14 @@ public class GcashServiceImpl implements GcashServicePort {
         try {
             RemittanceStatusResponse response = gcashRemitApi.getTransactionStatus(
                     GcashMapper.toGetRemittanceStatusRequest(request, gcashPropertiesConfig, objectMapper));
-            GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+            GcashUtils.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
             return GcashMapper.toEnquiryResponse(response);
         }
         catch (RuntimeException ex) {
-            return EnquiryResponseDto.builder()
-                .statusCode("100")
-                .statusDescription("Error")
-                .returnCode("101")
-                .returnDescription(ex.getMessage())
-                .build();
+            EnquiryResponseDto enquiryTxnResponse = EnquiryResponseDto.builder().build();
+            GcashUtils.mapToBaseResponse(enquiryTxnResponse, ex.getMessage(),
+                    RcResponseTemplateEnum.ENQUIRY_TXN_FAILURE);
+            return enquiryTxnResponse;
         }
     }
 
@@ -91,18 +88,16 @@ public class GcashServiceImpl implements GcashServicePort {
         balanceRequest.setFromMpin(gcashPropertiesConfig.getWalletPin());
 
         try {
-            return GcashMapper.toBalanceResponse(gcashBalanceApi.getWalletBalance(balanceRequest));
+            return GcashMapper.toBalanceEnquiryResponse(gcashBalanceApi.getWalletBalance(balanceRequest));
         }
         catch (HttpStatusCodeException ex) {
-            return GcashMapper.handleBalEnquiryException(ex, objectMapper);
+            return GcashMapper.handleBalanceEnquiryException(ex, objectMapper);
         }
         catch (RuntimeException ex) {
-            return VostroBalEnquiryResponseDto.builder()
-                .statusCode("100")
-                .statusDescription("Error")
-                .returnCode("101")
-                .returnDescription(ex.getMessage())
-                .build();
+            VostroBalEnquiryResponseDto balEnquiryResponse = VostroBalEnquiryResponseDto.builder().build();
+            GcashUtils.mapToBaseResponse(balEnquiryResponse, ex.getMessage(),
+                    RcResponseTemplateEnum.GET_BALANCE_FAILURE);
+            return balEnquiryResponse;
         }
     }
 
@@ -111,16 +106,14 @@ public class GcashServiceImpl implements GcashServicePort {
         try {
             ValidateAccountResponse response = gcashRemitApi
                 .validateAccount(GcashMapper.toValidateAccountRequest(request, gcashPropertiesConfig, objectMapper));
-            GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+            GcashUtils.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
             return GcashMapper.toAccountDetailsResponse(response);
         }
         catch (RuntimeException ex) {
-            return AccountDetailsResponseDto.builder()
-                .statusCode("100")
-                .statusDescription("Error")
-                .returnCode("101")
-                .returnDescription(ex.getMessage())
-                .build();
+            AccountDetailsResponseDto accountDetailsResponse = AccountDetailsResponseDto.builder().build();
+            GcashUtils.mapToBaseResponse(accountDetailsResponse, ex.getMessage(),
+                    RcResponseTemplateEnum.ACCOUNT_DETAILS_FAILURE);
+            return accountDetailsResponse;
         }
     }
 
