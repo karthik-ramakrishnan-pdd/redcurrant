@@ -45,10 +45,21 @@ public class GcashServiceImpl implements GcashServicePort {
 
     @Override
     public SendTxnResponseDto sendTxn(RequestDto request) {
-        PushRemittanceResponse response = gcashRemitApi
-            .pushRemit(GcashMapper.toPushRemitRequest(request, gcashPropertiesConfig, objectMapper));
-        GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
-        return GcashMapper.of(response);
+        try {
+            PushRemittanceResponse response = gcashRemitApi
+                .pushRemit(GcashMapper.toPushRemitRequest(request, gcashPropertiesConfig, objectMapper));
+            GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+            return GcashMapper.toSendTxnResponse(response);
+        }
+        catch (RuntimeException ex) {
+            return SendTxnResponseDto.builder()
+                .statusCode("100")
+                .statusDescription("Error")
+                .returnCode("101")
+                .returnDescription(ex.getMessage())
+                .build();
+        }
+
     }
 
     @Override
@@ -58,10 +69,20 @@ public class GcashServiceImpl implements GcashServicePort {
 
     @Override
     public EnquiryResponseDto enquiryTxn(RequestDto request) {
-        RemittanceStatusResponse response = gcashRemitApi.getTransactionStatus(
-                GcashMapper.toGetRemittanceStatusRequest(request, gcashPropertiesConfig, objectMapper));
-        GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
-        return GcashMapper.of(response);
+        try {
+            RemittanceStatusResponse response = gcashRemitApi.getTransactionStatus(
+                    GcashMapper.toGetRemittanceStatusRequest(request, gcashPropertiesConfig, objectMapper));
+            GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+            return GcashMapper.toEnquiryResponse(response);
+        }
+        catch (RuntimeException ex) {
+            return EnquiryResponseDto.builder()
+                .statusCode("100")
+                .statusDescription("Error")
+                .returnCode("101")
+                .returnDescription(ex.getMessage())
+                .build();
+        }
     }
 
     @Override
@@ -71,19 +92,37 @@ public class GcashServiceImpl implements GcashServicePort {
         balanceRequest.setFromMpin(gcashPropertiesConfig.getWalletPin());
 
         try {
-            return GcashMapper.of(gcashBalanceApi.getWalletBalance(balanceRequest));
+            return GcashMapper.toBalanceResponse(gcashBalanceApi.getWalletBalance(balanceRequest));
         }
         catch (HttpStatusCodeException ex) {
             return GcashMapper.handleBalEnquiryException(ex, objectMapper);
+        }
+        catch (RuntimeException ex) {
+            return VostroBalEnquiryResponseDto.builder()
+                .statusCode("100")
+                .statusDescription("Error")
+                .returnCode("101")
+                .returnDescription(ex.getMessage())
+                .build();
         }
     }
 
     @Override
     public AccountDetailsResponseDto fetchAcctDtls(RequestDto request) {
-        ValidateAccountResponse response = gcashRemitApi
-            .validateAccount(GcashMapper.toValidateAccountRequest(request, gcashPropertiesConfig, objectMapper));
-        GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
-        return GcashMapper.of(response);
+        try {
+            ValidateAccountResponse response = gcashRemitApi
+                .validateAccount(GcashMapper.toValidateAccountRequest(request, gcashPropertiesConfig, objectMapper));
+            GcashMapper.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
+            return GcashMapper.toAccountDetailsResponse(response);
+        }
+        catch (RuntimeException ex) {
+            return AccountDetailsResponseDto.builder()
+                .statusCode("100")
+                .statusDescription("Error")
+                .returnCode("101")
+                .returnDescription(ex.getMessage())
+                .build();
+        }
     }
 
     @Override

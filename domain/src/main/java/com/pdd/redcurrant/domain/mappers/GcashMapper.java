@@ -16,11 +16,9 @@ import com.pdd.redcurrant.domain.data.response.AccountDetailsResponseDto;
 import com.pdd.redcurrant.domain.data.response.EnquiryResponseDto;
 import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.VostroBalEnquiryResponseDto;
-import com.pdd.redcurrant.domain.exception.GcashException;
 import com.pdd.redcurrant.domain.utils.RsaCryptoUtils;
 import com.redcurrant.downstream.dto.gcash.SenderInfo;
 import com.redcurrant.downstream.dto.gcash.BalanceResponse;
-import com.redcurrant.downstream.dto.gcash.BalanceErrorResponse;
 import com.redcurrant.downstream.dto.gcash.PushRemittanceRequest;
 import com.redcurrant.downstream.dto.gcash.PushRemittanceRequestRequest;
 import com.redcurrant.downstream.dto.gcash.PushRemittanceResponse;
@@ -39,6 +37,7 @@ import com.redcurrant.downstream.dto.gcash.ValidateAccountRequest;
 import com.redcurrant.downstream.dto.gcash.ValidateAccountRequestRequest;
 import com.redcurrant.downstream.dto.gcash.ValidateAccountRequestRequestBody;
 import com.redcurrant.downstream.dto.gcash.ValidateAccountResponse;
+import com.redcurrant.downstream.dto.gcash.ResultInfo;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -51,44 +50,18 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
 @UtilityClass
 @Slf4j
 public class GcashMapper {
 
-    private static final String GCASH_INVALID_RESPONSE_CODE = "GCASH_INVALID_RESPONSE";
-
-    private static final String GCASH_INVALID_REQUEST_FORMAT = "INVALID_REQUEST_FORMAT";
-
     private static final String GCASH_SUCCESS_RESPONSE_CODE = "S";
 
     private static final DateTimeFormatter DOB_RC_INPUT_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy HH:mm:ss");
 
     private static final DateTimeFormatter DOB_GCASH_INTPUT_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
-
-    public VostroBalEnquiryResponseDto of(BalanceResponse balanceResponse) {
-        if (balanceResponse.getBalance() == null || balanceResponse.getBalance().getAvailableBalance().isEmpty()) {
-            throw new GcashException(GCASH_INVALID_RESPONSE_CODE, "Missing balance information in response");
-        }
-
-        return VostroBalEnquiryResponseDto.builder()
-            .statusCode(balanceResponse.getCode())
-            .balance(balanceResponse.getBalance().getAvailableBalance())
-            .build();
-    }
-
-    public VostroBalEnquiryResponseDto handleBalEnquiryException(HttpStatusCodeException ex,
-            ObjectMapper objectMapper) {
-        try {
-            BalanceErrorResponse error = objectMapper.readValue(ex.getResponseBodyAsString(),
-                    BalanceErrorResponse.class);
-            throw new GcashException(error.getCode(), error.getMessage());
-        }
-        catch (JsonProcessingException parseEx) {
-            throw new GcashException(GCASH_INVALID_RESPONSE_CODE, "Unable to parse GCash error response");
-        }
-    }
 
     public PushRemittanceRequest toPushRemitRequest(RequestDto rcRequest, GcashPropertiesConfig gcashPropertiesConfig,
             ObjectMapper objectMapper) {
@@ -106,7 +79,7 @@ public class GcashMapper {
             GcashPropertiesConfig gcashPropertiesConfig, ObjectMapper objectMapper) {
         RemittanceStatusRequestRequest request = new RemittanceStatusRequestRequest();
         request.setHead(buildRequestHead(gcashPropertiesConfig));
-        request.setBody(new RemittanceStatusRequestRequestBody().requestId(rcRequest.getTransaction().getTxnRefNo())
+        request.setBody(new RemittanceStatusRequestRequestBody().requestId(rcRequest.getTransaction().getAgentRefNo())
             .remcoId(gcashPropertiesConfig.getClientId()));
         RemittanceStatusRequest fullRequest = new RemittanceStatusRequest();
         fullRequest.setRequest(request);
@@ -123,7 +96,7 @@ public class GcashMapper {
                 rcRequest.getTransaction().getOptedService().getBeneficiaryAccountNumber());
         String gcashAccount = phoneNumber.getCountryCode() + "-" + phoneNumber.getNationalNumber();
 
-        request.setBody(new ValidateAccountRequestRequestBody().requestId(rcRequest.getTransaction().getTxnRefNo())
+        request.setBody(new ValidateAccountRequestRequestBody().requestId(UUID.randomUUID().toString())
             .remcoId(gcashPropertiesConfig.getClientId())
             .gcashAccount(gcashAccount));
         ValidateAccountRequest fullRequest = new ValidateAccountRequest();
@@ -140,7 +113,7 @@ public class GcashMapper {
             return RsaCryptoUtils.sign(requestBodyToSign, servicePrivateKey, gcashPropertiesConfig.getKeyAlgorithm());
         }
         catch (JsonProcessingException ex) {
-            throw new GcashException(GCASH_INVALID_RESPONSE_CODE, "Unable to parse GCash request body");
+            throw new RuntimeException("Unable to parse GCash request");
         }
     }
 
@@ -151,52 +124,17 @@ public class GcashMapper {
             String gcashResponseBody = objectMapper
                 .writeValueAsString(gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_RESPONSE));
             String gcashSignature = gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_SIGNATURE).asText();
-
             PublicKey publicKey = RsaCryptoUtils.loadPublicKey(config.getPublicKey());
             boolean verified = RsaCryptoUtils.verify(gcashResponseBody, gcashSignature, publicKey,
                     config.getKeyAlgorithm());
 
             if (!verified) {
-                throw new GcashException(GCASH_INVALID_RESPONSE_CODE,
-                        "Signature verification failed – response may be tampered");
+                throw new RuntimeException("Signature verification failed – response may be tampered");
             }
         }
         catch (JsonProcessingException ex) {
-            throw new GcashException(GCASH_INVALID_RESPONSE_CODE, "Unable to parse GCash error response");
+            throw new RuntimeException("Unable to parse GCash error response");
         }
-    }
-
-    public SendTxnResponseDto of(PushRemittanceResponse response) {
-        if (!GCASH_SUCCESS_RESPONSE_CODE
-            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus())) {
-            throw new GcashException(response.getResponse().getBody().getResultInfo().getResultCodeId(),
-                    response.getResponse().getBody().getResultInfo().getResultMsg());
-        }
-
-        return SendTxnResponseDto.builder()
-            .statusCode("0")
-            .partnerRefNo(response.getResponse().getBody().getTransactionId())
-            .build();
-    }
-
-    public EnquiryResponseDto of(RemittanceStatusResponse response) {
-        if (!GCASH_SUCCESS_RESPONSE_CODE
-            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus())) {
-            throw new GcashException(response.getResponse().getBody().getResultInfo().getResultCodeId(),
-                    response.getResponse().getBody().getResultInfo().getResultMsg());
-        }
-
-        return EnquiryResponseDto.builder().statusCode("0").build();
-    }
-
-    public AccountDetailsResponseDto of(ValidateAccountResponse response) {
-        if (!GCASH_SUCCESS_RESPONSE_CODE
-            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus())) {
-            throw new GcashException(response.getResponse().getBody().getResultInfo().getResultCodeId(),
-                    response.getResponse().getBody().getResultInfo().getResultMsg());
-        }
-
-        return AccountDetailsResponseDto.builder().statusCode("0").build();
     }
 
     private RequestHead buildRequestHead(GcashPropertiesConfig gcashPropertiesConfig) {
@@ -241,17 +179,16 @@ public class GcashMapper {
     private Amount buildAmount(TransactionDetailsDto transactionDetailsDto) {
         String currency = transactionDetailsDto.getToReceiver().getReceiveCurrency();
         if (!"PHP".equalsIgnoreCase(currency)) {
-            throw new GcashException(GCASH_INVALID_REQUEST_FORMAT, "Only PHP currency is supported");
+            throw new RuntimeException("Only PHP currency is supported");
         }
 
         String value = transactionDetailsDto.getToReceiver().getAmountToSend();
         if (!value.matches("^\\d+(\\.\\d{1,2})?$")) {
-            throw new GcashException(GCASH_INVALID_REQUEST_FORMAT,
-                    "Amount must have up to two decimal places (e.g., 100.00)");
+            throw new RuntimeException("Amount must have up to two decimal places (e.g., 100.00)");
         }
 
         Amount amount = new Amount();
-        amount.setCurrency("PHP");
+        amount.setCurrency(currency);
         amount.setValue(value);
         return amount;
     }
@@ -277,7 +214,7 @@ public class GcashMapper {
         RequestBody body = new RequestBody();
         body.setAction(RequestBody.ActionEnum.COMMIT);
         body.setRemcoId(gcashPropertiesConfig.getClientId());
-        body.requestId(rcRequest.getTransaction().getTxnRefNo());
+        body.requestId(rcRequest.getTransaction().getAgentRefNo());
         body.setComplianceInfo(buildComplianceInfo(rcRequest));
         body.setExtendInfo(buildExtendInfo(rcRequest));
         body.setAmount(buildAmount(rcRequest.getTransaction()));
@@ -293,7 +230,7 @@ public class GcashMapper {
             return PhoneNumberUtil.getInstance().parse(phoneNumber, null);
         }
         catch (NumberParseException ex) {
-            throw new GcashException(GCASH_INVALID_REQUEST_FORMAT, "Invalid phone number format: " + phoneNumber);
+            throw new RuntimeException("Invalid phone number format: " + phoneNumber);
         }
     }
 
@@ -303,7 +240,7 @@ public class GcashMapper {
             return dateTime.format(DOB_GCASH_INTPUT_FORMAT);
         }
         catch (DateTimeParseException ex) {
-            throw new GcashException(GCASH_INVALID_REQUEST_FORMAT, "Invalid date of birth format: " + dateOfBirth);
+            throw new RuntimeException("Invalid date of birth format: " + dateOfBirth);
         }
     }
 
@@ -314,11 +251,76 @@ public class GcashMapper {
                 return locale.getISO3Country();
             }
         }
-        throw new GcashException(GCASH_INVALID_REQUEST_FORMAT, "Unknown country name: " + countryName);
+        throw new RuntimeException("Unknown country name: " + countryName);
     }
 
     private String getIso3CountryCodeFromIso2(String iso2CountryCode) {
         return Locale.of("", iso2CountryCode).getISO3Country();
+    }
+
+    public VostroBalEnquiryResponseDto handleBalEnquiryException(HttpStatusCodeException ex,
+            ObjectMapper objectMapper) {
+        try {
+            BalanceResponse response = objectMapper.readValue(ex.getResponseBodyAsString(), BalanceResponse.class);
+            return toBalanceResponse(response);
+        }
+        catch (JsonProcessingException parseEx) {
+            throw new RuntimeException("Unable to parse GCash error response");
+        }
+    }
+
+    public static SendTxnResponseDto toSendTxnResponse(PushRemittanceResponse response) {
+        boolean success = GCASH_SUCCESS_RESPONSE_CODE
+            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus());
+
+        return SendTxnResponseDto.builder()
+            .statusCode(success ? "0" : "100")
+            .statusDescription(success ? "Success" : "Error")
+            .returnCode(success ? "1" : "101")
+            .returnDescription(buildDescription(response.getResponse().getBody().getResultInfo()))
+            .partnerRefNo(success ? response.getResponse().getBody().getTransactionId() : null)
+            .build();
+    }
+
+    public static EnquiryResponseDto toEnquiryResponse(RemittanceStatusResponse response) {
+        boolean success = GCASH_SUCCESS_RESPONSE_CODE
+            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus());
+
+        return EnquiryResponseDto.builder()
+            .statusCode(success ? "0" : "100")
+            .statusDescription(success ? "Success" : "Error")
+            .returnCode(success ? "2" : "101")
+            .returnDescription(buildDescription(response.getResponse().getBody().getResultInfo()))
+            .build();
+    }
+
+    public static AccountDetailsResponseDto toAccountDetailsResponse(ValidateAccountResponse response) {
+        boolean success = GCASH_SUCCESS_RESPONSE_CODE
+            .equalsIgnoreCase(response.getResponse().getBody().getResultInfo().getResultStatus());
+
+        return AccountDetailsResponseDto.builder()
+            .statusCode(success ? "0" : "100")
+            .statusDescription(success ? "Success" : "Info")
+            .returnCode(success ? "2" : "-1")
+            .returnDescription(buildDescription(response.getResponse().getBody().getResultInfo()))
+            .build();
+    }
+
+    public static VostroBalEnquiryResponseDto toBalanceResponse(BalanceResponse response) {
+        boolean success = "0".equalsIgnoreCase(response.getCode())
+                && (response.getBalance() != null || !response.getBalance().getAvailableBalance().isEmpty());
+        return VostroBalEnquiryResponseDto.builder()
+            .statusCode(success ? "0" : "100")
+            .statusDescription(success ? "Success" : "Error")
+            .returnCode(success ? "1" : "101")
+            .returnDescription(String.format("%s|%s", response.getCode(), response.getMessage()))
+            .balance(success ? response.getBalance().getAvailableBalance() : null)
+            .build();
+    }
+
+    private static String buildDescription(ResultInfo info) {
+        return String.join("|", Objects.toString(info.getResultCodeId(), ""),
+                Objects.toString(info.getResultCode(), ""), Objects.toString(info.getResultMsg(), ""));
     }
 
 }

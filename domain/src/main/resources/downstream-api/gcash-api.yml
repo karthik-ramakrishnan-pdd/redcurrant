@@ -89,7 +89,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BalanceErrorResponse'
+                $ref: '#/components/schemas/BalanceResponse'
 
 components:
   schemas:
@@ -360,7 +360,6 @@ components:
           properties:
             transactionId:
               type: string
-              nullable: true
             resultInfo:
               $ref: '#/components/schemas/ResultInfo'
 
@@ -409,15 +408,3 @@ components:
                 type: string
                 description: Balance excluding reserved cash-in amounts
             description: Present only if request is successful
-
-    BalanceErrorResponse:
-        type: object
-        properties:
-          code:
-            type: string
-            description: 'Code for the result'
-            example: "3"
-          message:
-            type: string
-            description: Description of the status
-            example: invalid pin

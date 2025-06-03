@@ -1,6 +1,7 @@
 package com.pdd.redcurrant.domain.registry;
 
 import com.pdd.redcurrant.domain.annotations.Partner;
+import com.pdd.redcurrant.domain.constants.PartnerConstants;
 import com.pdd.redcurrant.domain.ports.api.ServiceRegistryPort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import jakarta.annotation.PostConstruct;
@@ -60,7 +61,7 @@ public class ServiceRegistry implements ServiceRegistryPort {
     public void initialize() {
         applicationContext.getBeansWithAnnotation(Partner.class).forEach((beanName, service) -> {
             Partner annotation = service.getClass().getAnnotation(Partner.class);
-            partnerServices.put(annotation.value(), service);
+            partnerServices.put(PartnerConstants.PARTNER_GCASH, service);
         });
     }
 
