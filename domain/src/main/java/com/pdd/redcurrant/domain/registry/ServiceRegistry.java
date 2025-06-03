@@ -1,7 +1,6 @@
 package com.pdd.redcurrant.domain.registry;
 
 import com.pdd.redcurrant.domain.annotations.Partner;
-import com.pdd.redcurrant.domain.constants.PartnerConstants;
 import com.pdd.redcurrant.domain.ports.api.ServiceRegistryPort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import jakarta.annotation.PostConstruct;
@@ -9,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
@@ -60,8 +60,11 @@ public class ServiceRegistry implements ServiceRegistryPort {
     @PostConstruct
     public void initialize() {
         applicationContext.getBeansWithAnnotation(Partner.class).forEach((beanName, service) -> {
-            Partner annotation = service.getClass().getAnnotation(Partner.class);
-            partnerServices.put(PartnerConstants.PARTNER_GCASH, service);
+            // Use AnnotationUtils to handle proxy classes
+            Partner annotation = AnnotationUtils.findAnnotation(service.getClass(), Partner.class);
+            if (annotation != null) {
+                partnerServices.put(annotation.value(), service);
+            }
         });
     }
 
