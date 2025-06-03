@@ -29,7 +29,7 @@ public class GcashUtils {
 
     public String signRequest(ObjectMapper objectMapper, Object request, GcashPropertiesConfig gcashPropertiesConfig) {
         try {
-            String requestBodyToSign = objectMapper.writeValueAsString(request);
+            String requestBodyToSign = objectMapper.writeValueAsString(request).replace("'", "\\u0027");
 
             PrivateKey servicePrivateKey = RsaCryptoUtils.loadPrivateKey(gcashPropertiesConfig.getPrivateKey());
             return RsaCryptoUtils.sign(requestBodyToSign, servicePrivateKey, gcashPropertiesConfig.getKeyAlgorithm());
@@ -44,7 +44,8 @@ public class GcashUtils {
         try {
             JsonNode gcashResponse = objectMapper.readTree(responseCapture.get());
             String gcashResponseBody = objectMapper
-                .writeValueAsString(gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_RESPONSE));
+                .writeValueAsString(gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_RESPONSE))
+                .replace("'", "\\u0027");
             String gcashSignature = gcashResponse.get(PushRemittanceResponse.JSON_PROPERTY_SIGNATURE).asText();
             PublicKey publicKey = RsaCryptoUtils.loadPublicKey(config.getPublicKey());
             boolean verified = RsaCryptoUtils.verify(gcashResponseBody, gcashSignature, publicKey,
