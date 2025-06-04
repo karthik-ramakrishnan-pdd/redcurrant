@@ -1,11 +1,10 @@
 package com.pdd.redcurrant.application.controller.internal;
 
 import com.pdd.redcurrant.application.annotations.ExcludeFromJacocoGeneratedReport;
-import com.pdd.redcurrant.domain.data.ResponseDto;
-import com.pdd.redcurrant.domain.data.request.RequestDto;
 import com.pdd.redcurrant.domain.ports.api.StoredProcedureServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.Session;
 import jakarta.jms.TextMessage;
@@ -70,11 +69,11 @@ public class InternalEndpointController {
      * @param request The mock request payload to send.
      */
     @PostMapping(path = "solace/async")
-    public void testAsync(@RequestBody RequestDto request) {
+    public void testAsync(@RequestBody String request) {
         try {
-            String message = MapperUtils.toString(request);
-            jmsTemplate.convertAndSend(topicId, message);
-            log.info("Published: {}", message);
+            MapperUtils.isValid(request);
+            jmsTemplate.convertAndSend(topicId, request);
+            log.info("Published: {}", request);
         }
         catch (Exception ex) {
             log.error("Failed to publish async message: {}", ex.getMessage());
@@ -88,29 +87,29 @@ public class InternalEndpointController {
      * @return The response DTO received from the Solace queue (or null if none).
      */
     @PostMapping(path = "solace/sync")
-    public ResponseDto testSync(@RequestBody RequestDto request) {
+    public String testSync(@RequestBody String request) {
         try {
-            String message = MapperUtils.toString(request);
-            log.info("Publishing message: {}", message);
+            MapperUtils.isValid(request);
+            log.info("Publishing message: {}", request);
 
             // Send the message and wait for a response
             Message responseMessage = jmsTemplate.sendAndReceive(queueName, (Session session) -> {
-                TextMessage textMessage = session.createTextMessage(message);
+                TextMessage textMessage = session.createTextMessage(request);
                 textMessage.setJMSCorrelationID(UUID.randomUUID().toString());
                 return textMessage;
             });
 
-            log.info("Received response for publishing message: {}", message);
+            log.info("Received response for publishing message: {}", request);
 
             if (responseMessage instanceof TextMessage textMessage) {
-                return MapperUtils.convert(textMessage, ResponseDto.class);
+                return textMessage.getText();
             }
             else {
-                log.warn("No response received for message: {}", message);
+                log.warn("No response received for message: {}", request);
                 return null;
             }
         }
-        catch (JmsException ex) {
+        catch (JmsException | JMSException ex) {
             log.error("Failed to publish sync message: {}", ex.getMessage());
             throw new RuntimeException(ex);
         }

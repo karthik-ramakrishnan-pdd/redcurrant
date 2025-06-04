@@ -1,8 +1,6 @@
 package com.pdd.redcurrant.domain.data.request.common;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pdd.redcurrant.domain.annotations.StandardJson;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,9 +36,8 @@ public class MetadataDto {
     private OrderingInstitutionDto orderingInstitution;
 
     @Data
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public class OrderingInstitutionDto {
+    @StandardJson
+    public static class OrderingInstitutionDto {
 
         private String name;
 
@@ -51,9 +48,8 @@ public class MetadataDto {
     }
 
     @Data
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public class InstitutionAddressDto {
+    @StandardJson
+    public static class InstitutionAddressDto {
 
         private String countryCode;
 

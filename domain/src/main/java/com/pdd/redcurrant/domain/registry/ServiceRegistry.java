@@ -1,6 +1,7 @@
 package com.pdd.redcurrant.domain.registry;
 
 import com.pdd.redcurrant.domain.annotations.Partner;
+import com.pdd.redcurrant.domain.exception.BusinessException;
 import com.pdd.redcurrant.domain.ports.api.ServiceRegistryPort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import jakarta.annotation.PostConstruct;
@@ -32,8 +33,8 @@ import java.util.concurrent.ConcurrentMap;
  * interface.
  */
 @Component
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class ServiceRegistry implements ServiceRegistryPort {
 
     /**
@@ -86,37 +87,37 @@ public class ServiceRegistry implements ServiceRegistryPort {
     public <T> T invoke(String partnerName, String methodName, String rawJson) {
         Object service = partnerServices.get(partnerName);
         if (service == null) {
-            throw new IllegalArgumentException("No service registered for partner: " + partnerName);
+            return errorResponse(BusinessException.INVALID_ROUTING_KEY,
+                    "No service registered for partner: " + partnerName);
         }
 
         Method method = methodCache.computeIfAbsent(new MethodSignature(service.getClass(), methodName),
                 key -> findMethodByName(service.getClass(), methodName));
 
+        if (method == null) {
+            return errorResponse(BusinessException.INVALID_METHOD,
+                    "No suitable method named '" + methodName + "' in service: " + partnerName);
+        }
+
         if (method.getParameterCount() != 1) {
-            throw new IllegalArgumentException("Method " + methodName + " must have exactly one parameter.");
-        }
-
-        Class<?> paramType = method.getParameterTypes()[0];
-        Object deserializedDto;
-
-        try {
-            deserializedDto = MapperUtils.convert(rawJson, paramType);
-        }
-        catch (Exception ex) {
-            throw new IllegalArgumentException("JSON conversion failed for " + paramType.getSimpleName(), ex);
+            return errorResponse(BusinessException.INTERNAL_ERROR,
+                    "Method '" + methodName + "' must accept exactly one parameter.");
         }
 
         try {
             @SuppressWarnings("unchecked")
-            T result = (T) method.invoke(service, deserializedDto);
+            T result = (T) method.invoke(service, MapperUtils.convert(rawJson, method.getParameterTypes()[0]));
             return result;
         }
-        catch (IllegalAccessException ex) {
-            throw new IllegalStateException("Access denied for method: " + methodName, ex);
+        catch (IllegalAccessException | InvocationTargetException ex) {
+            return errorResponse(BusinessException.INTERNAL_ERROR,
+                    "Error invoking method '" + methodName + "': " + ex.getMessage());
         }
-        catch (InvocationTargetException ex) {
-            throw new RuntimeException("Invocation failed for: " + methodName, ex.getCause());
-        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T errorResponse(BusinessException exception, String message) {
+        return (T) exception.toResponse(message, null);
     }
 
     /**
@@ -142,8 +143,7 @@ public class ServiceRegistry implements ServiceRegistryPort {
                 return method;
             }
         }
-        throw new IllegalArgumentException(
-                "No suitable method found with name: " + methodName + " in " + serviceClass.getName());
+        return null;
     }
 
     /**
