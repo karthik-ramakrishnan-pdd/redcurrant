@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties(prefix = "gcash")
-public class GcashPropertiesConfig {
+public class GCashPropertiesConfig {
 
     private String privateKey;
 

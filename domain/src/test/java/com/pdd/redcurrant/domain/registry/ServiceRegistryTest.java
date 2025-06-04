@@ -9,7 +9,7 @@ import com.pdd.redcurrant.domain.data.response.BaseResponseDto;
 import com.pdd.redcurrant.domain.data.response.PreSendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
 import com.pdd.redcurrant.domain.exception.BusinessException;
-import com.pdd.redcurrant.domain.ports.api.GcashServicePort;
+import com.pdd.redcurrant.domain.ports.api.GCashServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +42,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * The test relies on a {@link TestConfiguration} to provide:
  * <ul>
  * <li>A real {@link ObjectMapper} instance for JSON serialization/deserialization.</li>
- * <li>A mocked {@link GcashServicePort} bean registered with a custom {@code @Partner}
+ * <li>A mocked {@link GCashServicePort} bean registered with a custom {@code @Partner}
  * qualifier.</li>
  * <li>The {@link ServiceRegistry} bean that uses the Spring {@link ApplicationContext} to
  * discover and invoke partner services.</li>
@@ -59,7 +59,7 @@ class ServiceRegistryTest {
     private ServiceRegistry registry;
 
     @Autowired
-    private GcashServicePort gcashServicePort;
+    private GCashServicePort gcashServicePort;
 
     @BeforeEach
     void setup() {
@@ -228,8 +228,8 @@ class ServiceRegistryTest {
 
         @Bean
         @Partner(PartnerConstants.PARTNER_GCASH)
-        protected GcashServicePort gcashServicePort() {
-            return Mockito.mock(GcashServicePort.class);
+        protected GCashServicePort gcashServicePort() {
+            return Mockito.mock(GCashServicePort.class);
         }
 
     }

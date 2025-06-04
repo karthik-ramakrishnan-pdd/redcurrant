@@ -3,7 +3,7 @@ package com.pdd.redcurrant.domain.configuration;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GcashResponseCapture {
+public class GCashResponseCapture {
 
     private final ThreadLocal<String> holder = new ThreadLocal<>();
 

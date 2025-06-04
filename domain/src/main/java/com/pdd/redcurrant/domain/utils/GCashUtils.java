@@ -3,8 +3,8 @@ package com.pdd.redcurrant.domain.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pdd.redcurrant.domain.configuration.GcashPropertiesConfig;
-import com.pdd.redcurrant.domain.configuration.GcashResponseCapture;
+import com.pdd.redcurrant.domain.configuration.GCashPropertiesConfig;
+import com.pdd.redcurrant.domain.configuration.GCashResponseCapture;
 import com.pdd.redcurrant.domain.constants.RcResponseTemplateEnum;
 import com.pdd.redcurrant.domain.data.response.BaseResponseDto;
 import com.redcurrant.downstream.dto.gcash.BalanceResponse;
@@ -17,7 +17,7 @@ import java.security.PublicKey;
 import java.util.Objects;
 
 @UtilityClass
-public class GcashUtils {
+public class GCashUtils {
 
     private static final String GCASH_REMIT_SUCCESS_RESPONSE_CODE = "S";
 
@@ -27,7 +27,7 @@ public class GcashUtils {
 
     private static final String DOB_GCASH_INTPUT_FORMAT = "yyyyMMdd";
 
-    public String signRequest(ObjectMapper objectMapper, Object request, GcashPropertiesConfig gcashPropertiesConfig) {
+    public String signRequest(ObjectMapper objectMapper, Object request, GCashPropertiesConfig gcashPropertiesConfig) {
         try {
             String requestBodyToSign = objectMapper.writeValueAsString(request).replace("'", "\\u0027");
 
@@ -39,8 +39,8 @@ public class GcashUtils {
         }
     }
 
-    public void verifyGcashResponseSignature(ObjectMapper objectMapper, GcashPropertiesConfig config,
-            GcashResponseCapture responseCapture) {
+    public void verifyGcashResponseSignature(ObjectMapper objectMapper, GCashPropertiesConfig config,
+            GCashResponseCapture responseCapture) {
         try {
             JsonNode gcashResponse = objectMapper.readTree(responseCapture.get());
             String gcashResponseBody = objectMapper

@@ -20,7 +20,7 @@ import java.util.List;
 public class RestTemplateConfig {
 
     @Bean
-    public RestTemplate gcashRestTemplate(ObjectMapper objectMapper, GcashResponseCapture capture) {
+    public RestTemplate gcashRestTemplate(ObjectMapper objectMapper, GCashResponseCapture capture) {
         RestTemplate template = new RestTemplate();
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();

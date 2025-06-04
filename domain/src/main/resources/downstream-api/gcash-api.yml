@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Gcash Service API
+  title: GCash Service API
   version: 1.0.0
-  description: Gcash service Api is responsible for submit transactions using Gcash partner.
+  description: GCash service Api is responsible for submit transactions using GCash partner.
 
 paths:
   /fund/remit/standard-push/push:

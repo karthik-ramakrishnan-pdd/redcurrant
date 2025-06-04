@@ -2,10 +2,10 @@ package com.pdd.redcurrant.domain.mappers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pdd.redcurrant.domain.configuration.GcashPropertiesConfig;
+import com.pdd.redcurrant.domain.configuration.GCashPropertiesConfig;
 import com.pdd.redcurrant.domain.constants.RcResponseTemplateEnum;
-import com.pdd.redcurrant.domain.data.request.RequestDto;
 import com.pdd.redcurrant.domain.constants.SourceOfIncomeEnum;
+import com.pdd.redcurrant.domain.data.request.RequestDto;
 import com.pdd.redcurrant.domain.data.request.common.ReceiverDto;
 import com.pdd.redcurrant.domain.data.request.common.TransactionDetailsDto;
 import com.pdd.redcurrant.domain.data.response.AccountDetailsResponseDto;
@@ -13,15 +13,15 @@ import com.pdd.redcurrant.domain.data.response.EnquiryResponseDto;
 import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.VostroBalEnquiryResponseDto;
 import com.pdd.redcurrant.domain.utils.CommonUtils;
-import com.pdd.redcurrant.domain.utils.GcashUtils;
-import com.redcurrant.downstream.dto.gcash.PushRemittanceRequest;
-import com.redcurrant.downstream.dto.gcash.PushRemittanceRequestRequest;
-import com.redcurrant.downstream.dto.gcash.PushRemittanceResponse;
+import com.pdd.redcurrant.domain.utils.GCashUtils;
 import com.redcurrant.downstream.dto.gcash.Amount;
 import com.redcurrant.downstream.dto.gcash.BalanceResponse;
 import com.redcurrant.downstream.dto.gcash.ComplianceInfo;
 import com.redcurrant.downstream.dto.gcash.ExtendInfo;
 import com.redcurrant.downstream.dto.gcash.IdInfo;
+import com.redcurrant.downstream.dto.gcash.PushRemittanceRequest;
+import com.redcurrant.downstream.dto.gcash.PushRemittanceRequestRequest;
+import com.redcurrant.downstream.dto.gcash.PushRemittanceResponse;
 import com.redcurrant.downstream.dto.gcash.ReceiverInfo;
 import com.redcurrant.downstream.dto.gcash.RemittanceStatusRequest;
 import com.redcurrant.downstream.dto.gcash.RemittanceStatusRequestRequest;
@@ -42,9 +42,9 @@ import java.util.HashMap;
 import java.util.UUID;
 
 @UtilityClass
-public class GcashMapper {
+public class GCashMapper {
 
-    public PushRemittanceRequest toPushRemitRequest(RequestDto rcRequest, GcashPropertiesConfig gcashPropertiesConfig,
+    public PushRemittanceRequest toPushRemitRequest(RequestDto rcRequest, GCashPropertiesConfig gcashPropertiesConfig,
             ObjectMapper objectMapper) {
         PushRemittanceRequestRequest request = new PushRemittanceRequestRequest();
         request.setHead(buildRequestHead(gcashPropertiesConfig));
@@ -52,12 +52,12 @@ public class GcashMapper {
 
         PushRemittanceRequest fullRequest = new PushRemittanceRequest();
         fullRequest.setRequest(request);
-        fullRequest.setSignature(GcashUtils.signRequest(objectMapper, request, gcashPropertiesConfig));
+        fullRequest.setSignature(GCashUtils.signRequest(objectMapper, request, gcashPropertiesConfig));
         return fullRequest;
     }
 
     public RemittanceStatusRequest toGetRemittanceStatusRequest(RequestDto rcRequest,
-            GcashPropertiesConfig gcashPropertiesConfig, ObjectMapper objectMapper) {
+            GCashPropertiesConfig gcashPropertiesConfig, ObjectMapper objectMapper) {
         RemittanceStatusRequestRequest request = new RemittanceStatusRequestRequest();
         request.setHead(buildRequestHead(gcashPropertiesConfig));
         request.setBody(new RemittanceStatusRequestRequestBody().requestId(rcRequest.getTransaction().getAgentRefNo())
@@ -65,12 +65,12 @@ public class GcashMapper {
 
         RemittanceStatusRequest fullRequest = new RemittanceStatusRequest();
         fullRequest.setRequest(request);
-        fullRequest.setSignature(GcashUtils.signRequest(objectMapper, request, gcashPropertiesConfig));
+        fullRequest.setSignature(GCashUtils.signRequest(objectMapper, request, gcashPropertiesConfig));
         return fullRequest;
     }
 
     public ValidateAccountRequest toValidateAccountRequest(RequestDto rcRequest,
-            GcashPropertiesConfig gcashPropertiesConfig, ObjectMapper objectMapper) {
+            GCashPropertiesConfig gcashPropertiesConfig, ObjectMapper objectMapper) {
         ValidateAccountRequestRequest request = new ValidateAccountRequestRequest();
         request.setHead(buildRequestHead(gcashPropertiesConfig));
 
@@ -83,11 +83,11 @@ public class GcashMapper {
             .gcashAccount(gcashAccount));
         ValidateAccountRequest fullRequest = new ValidateAccountRequest();
         fullRequest.setRequest(request);
-        fullRequest.setSignature(GcashUtils.signRequest(objectMapper, request, gcashPropertiesConfig));
+        fullRequest.setSignature(GCashUtils.signRequest(objectMapper, request, gcashPropertiesConfig));
         return fullRequest;
     }
 
-    private RequestHead buildRequestHead(GcashPropertiesConfig gcashPropertiesConfig) {
+    private RequestHead buildRequestHead(GCashPropertiesConfig gcashPropertiesConfig) {
         RequestHead head = new RequestHead();
         head.setVersion(gcashPropertiesConfig.getHeadVersion());
         head.setFunction(gcashPropertiesConfig.getHeadFunction());
@@ -109,7 +109,7 @@ public class GcashMapper {
         sender.setMiddleName(rcRequest.getSender().getSenderMiddleName());
         sender.setLastName(rcRequest.getSender().getSenderLastName());
         sender.setCountryOfBirth(CommonUtils.mapCountryNameToIso3(rcRequest.getSender().getSenderPlaceOfBirth()));
-        sender.setDateOfBirth(GcashUtils.getFormattedSenderDateOfBirth(rcRequest.getSender().getSenderDOB()));
+        sender.setDateOfBirth(GCashUtils.getFormattedSenderDateOfBirth(rcRequest.getSender().getSenderDOB()));
         sender.setRelationToReceiver(rcRequest.getSender().getSenderBeneRelationship());
         sender
             .setSourceOfIncome(SourceOfIncomeEnum.fromCodeOrDefault(rcRequest.getTransaction().getSourceOfIncomeCode())
@@ -150,7 +150,7 @@ public class GcashMapper {
         return compliance;
     }
 
-    private RequestBody buildRequestBody(RequestDto rcRequest, GcashPropertiesConfig gcashPropertiesConfig) {
+    private RequestBody buildRequestBody(RequestDto rcRequest, GCashPropertiesConfig gcashPropertiesConfig) {
         RequestBody body = new RequestBody();
         body.setAction(RequestBody.ActionEnum.COMMIT);
         body.setRemcoId(gcashPropertiesConfig.getClientId());
@@ -165,34 +165,34 @@ public class GcashMapper {
     }
 
     public SendTxnResponseDto toSendTxnResponse(PushRemittanceResponse response) {
-        boolean success = GcashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
+        boolean success = GCashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
         RcResponseTemplateEnum template = success ? RcResponseTemplateEnum.SEND_TXN_SUCCESS
                 : RcResponseTemplateEnum.SEND_TXN_FAILURE;
 
         SendTxnResponseDto responseDto = SendTxnResponseDto.builder()
             .partnerRefNo(response.getResponse().getBody().getTransactionId())
             .build();
-        GcashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
+        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
         return responseDto;
     }
 
     public EnquiryResponseDto toEnquiryResponse(RemittanceStatusResponse response) {
-        boolean success = GcashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
+        boolean success = GCashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
         RcResponseTemplateEnum template = success ? RcResponseTemplateEnum.ENQUIRY_TXN_SUCCESS
                 : RcResponseTemplateEnum.ENQUIRY_TXN_FAILURE;
 
         EnquiryResponseDto responseDto = EnquiryResponseDto.builder().build();
-        GcashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
+        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
         return responseDto;
     }
 
     public AccountDetailsResponseDto toAccountDetailsResponse(ValidateAccountResponse response) {
-        boolean success = GcashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
+        boolean success = GCashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
         RcResponseTemplateEnum template = success ? RcResponseTemplateEnum.ACCOUNT_DETAILS_SUCCESS
                 : RcResponseTemplateEnum.ACCOUNT_DETAILS_FAILURE;
 
         AccountDetailsResponseDto responseDto = AccountDetailsResponseDto.builder().build();
-        GcashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
+        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
         return responseDto;
     }
 
@@ -208,14 +208,14 @@ public class GcashMapper {
     }
 
     public VostroBalEnquiryResponseDto toBalanceEnquiryResponse(BalanceResponse response) {
-        boolean success = GcashUtils.isSuccessful(response);
+        boolean success = GCashUtils.isSuccessful(response);
         RcResponseTemplateEnum template = success ? RcResponseTemplateEnum.GET_BALANCE_SUCCESS
                 : RcResponseTemplateEnum.GET_BALANCE_FAILURE;
 
         VostroBalEnquiryResponseDto responseDto = VostroBalEnquiryResponseDto.builder()
             .balance(success ? response.getBalance().getAvailableBalance() : null)
             .build();
-        GcashUtils.mapToBaseResponse(responseDto, response, template);
+        GCashUtils.mapToBaseResponse(responseDto, response, template);
         return responseDto;
     }
 
