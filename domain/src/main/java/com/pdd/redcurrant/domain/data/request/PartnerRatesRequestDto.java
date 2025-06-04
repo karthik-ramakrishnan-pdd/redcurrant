@@ -20,8 +20,6 @@ import java.math.BigDecimal;
 public class PartnerRatesRequestDto extends BaseRequestDto {
 
     // Transaction Identifiers
-    private String reqId;
-
     private String txnRefNum;
 
     private String txnType;

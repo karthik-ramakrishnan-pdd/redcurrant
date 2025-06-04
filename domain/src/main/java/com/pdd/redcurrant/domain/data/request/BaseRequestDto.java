@@ -18,4 +18,7 @@ public class BaseRequestDto {
     @NotNull
     private String routingKey;
 
+    // TODO @hanan Set in response for all api
+    private String reqId;
+
 }

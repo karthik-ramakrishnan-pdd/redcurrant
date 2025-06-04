@@ -18,8 +18,6 @@ import lombok.experimental.SuperBuilder;
 public class VostroBalEnquiryRequestDto extends BaseRequestDto {
 
     // Transaction Identifiers
-    private String reqId;
-
     private Integer processingType;
 
     // Account Information
