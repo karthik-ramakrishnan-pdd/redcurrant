@@ -13,8 +13,7 @@ public enum BusinessException {
     INTERNAL_ERROR("100", "Internal Error", "101"),
     VALIDATION_FAILED("100", "Validation Error", "101"),
     INVALID_METHOD("100", "Provided Invalid Method", "101"),
-    INVALID_ROUTING_KEY("100", "Provided Invalid Routing Key", "101"),
-    ;
+    INVALID_ROUTING_KEY("100", "Provided Invalid Routing Key", "101");
 
     //@formatter:on
 

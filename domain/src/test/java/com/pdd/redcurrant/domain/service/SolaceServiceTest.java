@@ -9,6 +9,8 @@ import jakarta.validation.Validator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -56,17 +58,28 @@ class SolaceServiceTest {
                 }
                 """;
 
-        BaseRequestDto dto = BaseRequestDto.builder().method("someMethod").routingKey("someKey").build();
+        BaseRequestDto expectedDto = BaseRequestDto.builder().method("someMethod").routingKey("someKey").build();
 
-        // Manually mock MapperUtils.convert to return the DTO (static mocking)
         try (MockedStatic<MapperUtils> utilities = Mockito.mockStatic(MapperUtils.class)) {
-            utilities.when(() -> MapperUtils.convert(validJson, BaseRequestDto.class)).thenReturn(dto);
+            utilities.when(() -> MapperUtils.convert(validJson, BaseRequestDto.class)).thenReturn(expectedDto);
 
-            Mockito.when(validator.validate(dto)).thenReturn(Collections.emptySet());
+            Mockito.when(validator.validate(expectedDto)).thenReturn(Collections.emptySet());
 
             solaceService.process(validJson);
 
-            Mockito.verify(serviceRegistry, Mockito.times(1)).invoke("someKey", "someMethod", dto.toString());
+            // Capture the actual string passed to serviceRegistry.invoke
+            ArgumentCaptor<String> dtoStringCaptor = ArgumentCaptor.forClass(String.class);
+            Mockito.verify(serviceRegistry)
+                .invoke(ArgumentMatchers.eq("someKey"), ArgumentMatchers.eq("someMethod"), dtoStringCaptor.capture());
+
+            String actualJson = dtoStringCaptor.getValue();
+
+            // Deserialize captured JSON string to DTO
+            BaseRequestDto actualDto = MapperUtils.convert(actualJson, BaseRequestDto.class);
+
+            // Assert equality of the expected and actual DTOs
+            Assertions.assertEquals(expectedDto.getMethod(), actualDto.getMethod());
+            Assertions.assertEquals(expectedDto.getRoutingKey(), actualDto.getRoutingKey());
         }
     }
 
@@ -88,7 +101,7 @@ class SolaceServiceTest {
         String invalidJson = """
                 {
                     "method": null,
-                    "routingKey":"someKey"
+                    "routingKey": "someKey"
                 }
                 """;
 
@@ -108,11 +121,10 @@ class SolaceServiceTest {
 
             Mockito.when(validator.validate(dto)).thenReturn(Set.of(violation));
 
-            IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class,
-                    () -> solaceService.process(invalidJson));
+            var result = solaceService.process(invalidJson).toString();
 
-            Assertions.assertTrue(exception.getMessage().contains("Validation failed:"));
-            Assertions.assertTrue(exception.getMessage().contains("method must not be null"));
+            Assertions.assertTrue(result.contains("Validation failed:"));
+            Assertions.assertTrue(result.contains("method must not be null"));
         }
     }
 
