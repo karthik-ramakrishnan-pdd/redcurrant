@@ -37,10 +37,13 @@ public class MetadataDto {
 
     private OrderingInstitutionDto orderingInstitution;
 
+    @Builder
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public class OrderingInstitutionDto {
+    public static class OrderingInstitutionDto {
 
         private String name;
 
@@ -50,10 +53,13 @@ public class MetadataDto {
 
     }
 
+    @Builder
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public class InstitutionAddressDto {
+    public static class InstitutionAddressDto {
 
         private String countryCode;
 
