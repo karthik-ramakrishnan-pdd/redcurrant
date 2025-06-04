@@ -18,4 +18,6 @@ public class BaseRequestDto {
     @NotNull
     private String routingKey;
 
+    private String reqId;
+
 }

@@ -21,10 +21,27 @@ public final class MapperUtils {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, true);
         OBJECT_MAPPER.configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, true);
         OBJECT_MAPPER.setNodeFactory(JsonNodeFactory.withExactBigDecimals(true));
     }
 
     private MapperUtils() {
+    }
+
+    /**
+     * Method to verify the json is valid
+     * @param json string to be verified
+     * @return boolean. returns true, if json is valid
+     */
+    public static boolean isValid(String json) {
+        try {
+            OBJECT_MAPPER.readTree(json);
+            return true;
+        }
+        catch (JsonProcessingException ex) {
+            log.error("Invalid JSON input: {}", json);
+            return false;
+        }
     }
 
     /**
@@ -52,7 +69,7 @@ public final class MapperUtils {
                     : OBJECT_MAPPER.writeValueAsString(obj);
         }
         catch (JsonProcessingException ex) {
-            log.info("Error converting toString. {}", ex.getLocalizedMessage());
+            log.error("Error converting toString. {}", ex.getLocalizedMessage());
             return null;
         }
     }
@@ -104,7 +121,7 @@ public final class MapperUtils {
             }
         }
         catch (JsonProcessingException ex) {
-            log.info("Error converting toObject. {}", ex.getLocalizedMessage());
+            log.error("Error converting toObject. {}", ex.getLocalizedMessage());
             return null;
         }
     }

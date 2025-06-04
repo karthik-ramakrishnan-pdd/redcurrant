@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pdd.redcurrant.domain.annotations.Partner;
 import com.pdd.redcurrant.domain.constants.PartnerConstants;
 import com.pdd.redcurrant.domain.data.request.RequestDto;
+import com.pdd.redcurrant.domain.data.response.BaseResponseDto;
 import com.pdd.redcurrant.domain.data.response.PreSendTxnResponseDto;
 import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
+import com.pdd.redcurrant.domain.exception.BusinessException;
 import com.pdd.redcurrant.domain.ports.api.GCashServicePort;
+import com.pdd.redcurrant.domain.utils.MapperUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,9 +61,6 @@ class ServiceRegistryTest {
     @Autowired
     private GCashServicePort gcashServicePort;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @BeforeEach
     void setup() {
         Mockito.reset(gcashServicePort);
@@ -83,7 +83,7 @@ class ServiceRegistryTest {
 
         Mockito.when(gcashServicePort.sendTxn(ArgumentMatchers.any(RequestDto.class))).thenReturn(expected);
 
-        String json = objectMapper.writeValueAsString(request);
+        String json = MapperUtils.toString(request);
         SendTxnResponseDto actual = registry.invoke(PartnerConstants.PARTNER_GCASH, "sendTxn", json);
 
         Assertions.assertEquals(expected, actual);
@@ -128,42 +128,47 @@ class ServiceRegistryTest {
     // ==========================
 
     /**
-     * Tests that invoking a method on an unknown partner throws an
-     * IllegalArgumentException with an appropriate error message.
+     * Tests that invoking a method on an unknown partner name returns a BaseResponseDto
+     * with INVALID_ROUTING_KEY error details.
      */
     @Test
-    void testUnknownPartner_ThrowsIllegalArgumentException() {
-        IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
-                () -> registry.invoke("INVALID_PARTNER", "sendTxn", "{}"));
-        org.assertj.core.api.Assertions.assertThat(ex.getMessage()).contains("No service registered for partner");
+    void testUnknownPartner_ReturnsInvalidRoutingKeyResponse() {
+        BaseResponseDto response = registry.invoke("INVALID_PARTNER", "sendTxn", "{}");
+
+        Assertions.assertEquals(BusinessException.INVALID_ROUTING_KEY.getStatusCode(), response.getStatusCode());
+        Assertions.assertEquals(BusinessException.INVALID_ROUTING_KEY.getReturnCode(), response.getReturnCode());
+        Assertions.assertTrue(response.getReturnDescription().contains("No service registered for partner"));
     }
 
     /**
-     * Tests that invoking a non-existent method on a known partner throws an
-     * IllegalArgumentException indicating no suitable method found.
+     * Tests that invoking a non-existent method on a valid partner returns a
+     * BaseResponseDto with INVALID_METHOD error details.
      */
     @Test
-    void testInvalidMethodName_ThrowsIllegalArgumentException() {
-        IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
-                () -> registry.invoke(PartnerConstants.PARTNER_GCASH, "nonExistentMethod", "{}"));
-        org.assertj.core.api.Assertions.assertThat(ex.getMessage()).contains("No suitable method found");
+    void testInvalidMethodName_ReturnsInvalidMethodResponse() {
+        BaseResponseDto response = registry.invoke(PartnerConstants.PARTNER_GCASH, "nonExistentMethod", "{}");
+
+        Assertions.assertEquals(BusinessException.INVALID_METHOD.getStatusCode(), response.getStatusCode());
+        Assertions.assertEquals(BusinessException.INVALID_METHOD.getReturnCode(), response.getReturnCode());
+        Assertions.assertTrue(response.getReturnDescription().contains("No suitable method named"));
     }
 
     /**
      * Tests that if the invoked partner service method throws a runtime exception, the
-     * ServiceRegistry wraps it inside a RuntimeException with a meaningful message.
+     * ServiceRegistry returns a BaseResponseDto with INTERNAL_ERROR details.
      */
     @Test
-    void testServiceThrowsException_IsWrappedInRuntimeException() throws JsonProcessingException {
+    void testServiceThrowsException_ReturnsInternalErrorResponse() {
         RequestDto request = RequestDto.builder().build();
         Mockito.when(gcashServicePort.sendTxn(ArgumentMatchers.any())).thenThrow(new RuntimeException("Service error"));
 
-        String json = objectMapper.writeValueAsString(request);
-        RuntimeException ex = Assertions.assertThrows(RuntimeException.class,
-                () -> registry.invoke(PartnerConstants.PARTNER_GCASH, "sendTxn", json));
+        String json = MapperUtils.toString(request);
 
-        org.assertj.core.api.Assertions.assertThat(ex.getMessage()).contains("Invocation failed");
-        org.assertj.core.api.Assertions.assertThat(ex.getCause()).hasMessage("Service error");
+        BaseResponseDto response = registry.invoke(PartnerConstants.PARTNER_GCASH, "sendTxn", json);
+
+        Assertions.assertEquals(BusinessException.INTERNAL_ERROR.getStatusCode(), response.getStatusCode());
+        Assertions.assertEquals(BusinessException.INTERNAL_ERROR.getReturnCode(), response.getReturnCode());
+        Assertions.assertTrue(response.getReturnDescription().contains("Error invoking method"));
     }
 
     // ==========================
@@ -180,7 +185,7 @@ class ServiceRegistryTest {
         RequestDto request = RequestDto.builder().build();
         Mockito.when(gcashServicePort.sendTxn(ArgumentMatchers.any())).thenReturn(SendTxnResponseDto.builder().build());
 
-        String json = objectMapper.writeValueAsString(request);
+        String json = MapperUtils.toString(request);
 
         registry.invoke(PartnerConstants.PARTNER_GCASH, "sendTxn", json);
         int initialCacheSize = registry.getMethodCacheSize();
@@ -203,8 +208,8 @@ class ServiceRegistryTest {
 
         Mockito.when(gcashServicePort.sendTxn(ArgumentMatchers.any())).thenReturn(SendTxnResponseDto.builder().build());
 
-        String json1 = objectMapper.writeValueAsString(req1);
-        String json2 = objectMapper.writeValueAsString(req2);
+        String json1 = MapperUtils.toString(req1);
+        String json2 = MapperUtils.toString(req2);
 
         registry.invoke(PartnerConstants.PARTNER_GCASH, "sendTxn", json1);
         int initialCacheSize = registry.getMethodCacheSize();
@@ -215,11 +220,6 @@ class ServiceRegistryTest {
 
     @TestConfiguration
     static class TestConfig {
-
-        @Bean
-        protected ObjectMapper objectMapper() {
-            return new ObjectMapper();
-        }
 
         @Bean
         protected ServiceRegistry servicePortRegistry(ApplicationContext context) {

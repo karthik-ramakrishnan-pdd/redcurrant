@@ -1,5 +1,6 @@
 package com.pdd.redcurrant.application.listeners;
 
+import com.pdd.redcurrant.domain.exception.BusinessException;
 import com.pdd.redcurrant.domain.ports.api.SolaceServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import jakarta.jms.JMSException;
@@ -39,12 +40,11 @@ public class SolaceListener {
     @JmsListener(destination = "${solace.gateway.topic_id}", containerFactory = "topicListenerContainerFactory")
     public void handleAsync(String message) {
         try {
-            log.info("Received: {}", message);
+            log.debug("Received message: {}", message);
             solaceService.process(message);
         }
         catch (Exception ex) {
-            log.error("Error processing async message: {}", ex.getMessage());
-            throw new RuntimeException(ex);
+            log.error(MapperUtils.toString(BusinessException.INTERNAL_ERROR.toResponse(ex.getMessage(), null)));
         }
     }
 
@@ -57,21 +57,21 @@ public class SolaceListener {
     @JmsListener(destination = "${solace.gateway.queue_name}", containerFactory = "queueListenerContainerFactory")
     public void handleSync(Message message, Session session) {
         if (!(message instanceof TextMessage)) {
-            log.warn("Obtained message is not supported: {}", message);
+            log.warn("Obtained message is not supported: {}, Session {}", message, session);
             return;
         }
 
         try {
             String json = ((TextMessage) message).getText();
-            log.info("Received message: {}", json);
+            log.debug("Received message: {}", json);
 
             String response;
             try {
-                response = MapperUtils.toString(solaceService.processAndReturn(json));
+                response = MapperUtils.toString(solaceService.process(json));
             }
             catch (Exception ex) {
                 log.error("Error processing message: {}", ex.getMessage());
-                response = "Error Processing Data";
+                response = MapperUtils.toString(BusinessException.INTERNAL_ERROR.toResponse(ex.getMessage(), null));
             }
 
             TextMessage responseMessage = session.createTextMessage(response);
@@ -82,6 +82,7 @@ public class SolaceListener {
         }
         catch (JMSException jmsEx) {
             log.error("Error with JMS session: {}", jmsEx.getMessage());
+            throw new RuntimeException(jmsEx);
         }
     }
 
