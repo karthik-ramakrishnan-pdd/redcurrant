@@ -37,7 +37,7 @@ public class SolaceListener {
      * is passed directly to the service layer for processing.
      * @param message The raw JSON payload received from the Solace topic.
      */
-    @JmsListener(destination = "${solace.gateway.topic_id}", containerFactory = "topicListenerContainerFactory")
+    @JmsListener(destination = "${solace.gateway.async.queue}", containerFactory = "queueListenerContainerFactory")
     public void handleAsync(String message) {
         try {
             log.debug("Received message: {}", message);
@@ -54,7 +54,7 @@ public class SolaceListener {
      * @param message The JMS message received from the Solace queue.
      * @param session The JMS session used to create and send the response.
      */
-    @JmsListener(destination = "${solace.gateway.queue_name}", containerFactory = "queueListenerContainerFactory")
+    @JmsListener(destination = "${solace.gateway.sync.queue}", containerFactory = "queueListenerContainerFactory")
     public void handleSync(Message message, Session session) {
         if (!(message instanceof TextMessage)) {
             log.warn("Obtained message is not supported: {}, Session {}", message, session);

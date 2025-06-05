@@ -9,14 +9,6 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 public class SolaceConfig {
 
     @Bean
-    public DefaultJmsListenerContainerFactory topicListenerContainerFactory(ConnectionFactory connectionFactory) {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
-        factory.setPubSubDomain(true); // Enable pub-sub mode for this factory
-        return factory;
-    }
-
-    @Bean
     public DefaultJmsListenerContainerFactory queueListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
