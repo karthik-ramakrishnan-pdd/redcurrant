@@ -26,11 +26,16 @@ import com.redcurrant.downstream.dto.gcash.BalanceRequest;
 import com.redcurrant.downstream.dto.gcash.PushRemittanceRequest;
 import com.redcurrant.downstream.dto.gcash.PushRemittanceResponse;
 import com.redcurrant.downstream.dto.gcash.RemittanceStatusResponse;
+import com.redcurrant.downstream.dto.gcash.RemittanceStatusRequest;
+import com.redcurrant.downstream.dto.gcash.ValidateAccountRequest;
 import com.redcurrant.downstream.dto.gcash.ValidateAccountResponse;
+import com.redcurrant.downstream.dto.gcash.BalanceResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.HttpStatusCodeException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class GCashServiceImpl implements GCashServicePort {
 
     private final GcashBalanceApi gcashBalanceApi;
@@ -46,15 +51,21 @@ public class GCashServiceImpl implements GCashServicePort {
     @Override
     public SendTxnResponseDto sendTxn(RequestDto request) {
         try {
+            log.info("Initiating sendTxn for requestId: {}", request.getReqId());
             PushRemittanceRequest pushRemittanceRequest = GCashMapper.toPushRemitRequest(request, gcashPropertiesConfig,
                     objectMapper);
+            log.debug("PushRemittanceRequest: {}", pushRemittanceRequest);
             PushRemittanceResponse pushRemittanceResponse = gcashRemitApi.pushRemit(pushRemittanceRequest);
+            log.debug("PushRemittanceResponse received: {}", pushRemittanceResponse);
             GCashUtils.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
-            return GCashMapper.toSendTxnResponse(pushRemittanceResponse);
+            log.info("GCash response signature verified for requestId: {}", request.getReqId());
+            return GCashMapper.toSendTxnResponse(pushRemittanceResponse, request);
         }
         catch (RuntimeException ex) {
+            log.error("sendTxn failed for requestId: {}, error: {}", request.getReqId(), ex.getMessage(), ex);
             SendTxnResponseDto sendTxnResponse = SendTxnResponseDto.builder().build();
-            GCashUtils.mapToBaseResponse(sendTxnResponse, ex.getMessage(), RcResponseTemplateEnum.SEND_TXN_FAILURE);
+            GCashUtils.mapToBaseResponse(sendTxnResponse, ex.getMessage(), RcResponseTemplateEnum.SEND_TXN_FAILURE,
+                    request);
             return sendTxnResponse;
         }
 
@@ -68,35 +79,46 @@ public class GCashServiceImpl implements GCashServicePort {
     @Override
     public EnquiryResponseDto enquiryTxn(RequestDto request) {
         try {
-            RemittanceStatusResponse response = gcashRemitApi.getTransactionStatus(
-                    GCashMapper.toGetRemittanceStatusRequest(request, gcashPropertiesConfig, objectMapper));
+            log.info("Initiating enquiryTxn for requestId: {}", request.getReqId());
+            RemittanceStatusRequest remittanceStatusRequest = GCashMapper.toGetRemittanceStatusRequest(request,
+                    gcashPropertiesConfig, objectMapper);
+            log.debug("RemittanceStatusRequest: {}", remittanceStatusRequest);
+            RemittanceStatusResponse response = gcashRemitApi.getTransactionStatus(remittanceStatusRequest);
+            log.debug("RemittanceStatusResponse: {}", response);
             GCashUtils.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
-            return GCashMapper.toEnquiryResponse(response);
+            log.info("GCash response signature verified for enquiryTxn, requestId: {}", request.getReqId());
+            return GCashMapper.toEnquiryResponse(response, request);
         }
         catch (RuntimeException ex) {
+            log.error("enquiryTxn failed for requestId: {}, error: {}", request.getReqId(), ex.getMessage(), ex);
             EnquiryResponseDto enquiryTxnResponse = EnquiryResponseDto.builder().build();
             GCashUtils.mapToBaseResponse(enquiryTxnResponse, ex.getMessage(),
-                    RcResponseTemplateEnum.ENQUIRY_TXN_FAILURE);
+                    RcResponseTemplateEnum.ENQUIRY_TXN_FAILURE, request);
             return enquiryTxnResponse;
         }
     }
 
     @Override
     public VostroBalEnquiryResponseDto vostroBalEnquiry(VostroBalEnquiryRequestDto request) {
+        log.info("Initiating vostroBalEnquiry for requestId: {}", request.getReqId());
         BalanceRequest balanceRequest = new BalanceRequest();
         balanceRequest.setFromWallet(gcashPropertiesConfig.getWalletName());
         balanceRequest.setFromMpin(gcashPropertiesConfig.getWalletPin());
 
         try {
-            return GCashMapper.toBalanceEnquiryResponse(gcashBalanceApi.getWalletBalance(balanceRequest));
+            BalanceResponse response = gcashBalanceApi.getWalletBalance(balanceRequest);
+            log.debug("BalanceResponse received: {}", response);
+            return GCashMapper.toBalanceEnquiryResponse(response, request);
         }
         catch (HttpStatusCodeException ex) {
-            return GCashMapper.handleBalanceEnquiryException(ex, objectMapper);
+            log.error("HttpStatusCodeException during vostroBalEnquiry: {}", ex.getMessage(), ex);
+            return GCashMapper.handleBalanceEnquiryException(ex, objectMapper, request);
         }
         catch (RuntimeException ex) {
+            log.error("Unexpected error during vostroBalEnquiry: {}", ex.getMessage(), ex);
             VostroBalEnquiryResponseDto balEnquiryResponse = VostroBalEnquiryResponseDto.builder().build();
             GCashUtils.mapToBaseResponse(balEnquiryResponse, ex.getMessage(),
-                    RcResponseTemplateEnum.GET_BALANCE_FAILURE);
+                    RcResponseTemplateEnum.GET_BALANCE_FAILURE, request);
             return balEnquiryResponse;
         }
     }
@@ -104,15 +126,21 @@ public class GCashServiceImpl implements GCashServicePort {
     @Override
     public AccountDetailsResponseDto fetchAcctDtls(RequestDto request) {
         try {
-            ValidateAccountResponse response = gcashRemitApi
-                .validateAccount(GCashMapper.toValidateAccountRequest(request, gcashPropertiesConfig, objectMapper));
+            log.info("Initiating fetchAcctDtls for requestId: {}", request.getReqId());
+            ValidateAccountRequest validateAccountRequest = GCashMapper.toValidateAccountRequest(request,
+                    gcashPropertiesConfig, objectMapper);
+            log.debug("ValidateAccountRequest: {}", validateAccountRequest);
+            ValidateAccountResponse response = gcashRemitApi.validateAccount(validateAccountRequest);
+            log.debug("ValidateAccountResponse: {}", response);
             GCashUtils.verifyGcashResponseSignature(objectMapper, gcashPropertiesConfig, gcashResponseCapture);
-            return GCashMapper.toAccountDetailsResponse(response);
+            log.info("GCash response signature verified for fetchAcctDtls, requestId: {}", request.getReqId());
+            return GCashMapper.toAccountDetailsResponse(response, request);
         }
         catch (RuntimeException ex) {
+            log.error("fetchAcctDtls failed for requestId: {}, error: {}", request.getReqId(), ex.getMessage(), ex);
             AccountDetailsResponseDto accountDetailsResponse = AccountDetailsResponseDto.builder().build();
             GCashUtils.mapToBaseResponse(accountDetailsResponse, ex.getMessage(),
-                    RcResponseTemplateEnum.ACCOUNT_DETAILS_FAILURE);
+                    RcResponseTemplateEnum.ACCOUNT_DETAILS_FAILURE, request);
             return accountDetailsResponse;
         }
     }

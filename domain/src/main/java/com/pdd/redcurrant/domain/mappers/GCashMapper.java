@@ -6,6 +6,7 @@ import com.pdd.redcurrant.domain.configuration.GCashPropertiesConfig;
 import com.pdd.redcurrant.domain.constants.RcResponseTemplateEnum;
 import com.pdd.redcurrant.domain.constants.SourceOfIncomeEnum;
 import com.pdd.redcurrant.domain.data.request.RequestDto;
+import com.pdd.redcurrant.domain.data.request.VostroBalEnquiryRequestDto;
 import com.pdd.redcurrant.domain.data.request.common.ReceiverDto;
 import com.pdd.redcurrant.domain.data.request.common.TransactionDetailsDto;
 import com.pdd.redcurrant.domain.data.response.AccountDetailsResponseDto;
@@ -164,7 +165,7 @@ public class GCashMapper {
         return body;
     }
 
-    public SendTxnResponseDto toSendTxnResponse(PushRemittanceResponse response) {
+    public SendTxnResponseDto toSendTxnResponse(PushRemittanceResponse response, RequestDto request) {
         boolean success = GCashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
         RcResponseTemplateEnum template = success ? RcResponseTemplateEnum.SEND_TXN_SUCCESS
                 : RcResponseTemplateEnum.SEND_TXN_FAILURE;
@@ -172,42 +173,43 @@ public class GCashMapper {
         SendTxnResponseDto responseDto = SendTxnResponseDto.builder()
             .partnerRefNo(response.getResponse().getBody().getTransactionId())
             .build();
-        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
+        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template, request);
         return responseDto;
     }
 
-    public EnquiryResponseDto toEnquiryResponse(RemittanceStatusResponse response) {
+    public EnquiryResponseDto toEnquiryResponse(RemittanceStatusResponse response, RequestDto request) {
         boolean success = GCashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
         RcResponseTemplateEnum template = success ? RcResponseTemplateEnum.ENQUIRY_TXN_SUCCESS
                 : RcResponseTemplateEnum.ENQUIRY_TXN_FAILURE;
 
         EnquiryResponseDto responseDto = EnquiryResponseDto.builder().build();
-        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
+        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template, request);
         return responseDto;
     }
 
-    public AccountDetailsResponseDto toAccountDetailsResponse(ValidateAccountResponse response) {
+    public AccountDetailsResponseDto toAccountDetailsResponse(ValidateAccountResponse response, RequestDto request) {
         boolean success = GCashUtils.isSuccessful(response.getResponse().getBody().getResultInfo());
         RcResponseTemplateEnum template = success ? RcResponseTemplateEnum.ACCOUNT_DETAILS_SUCCESS
                 : RcResponseTemplateEnum.ACCOUNT_DETAILS_FAILURE;
 
         AccountDetailsResponseDto responseDto = AccountDetailsResponseDto.builder().build();
-        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template);
+        GCashUtils.mapToBaseResponse(responseDto, response.getResponse().getBody().getResultInfo(), template, request);
         return responseDto;
     }
 
     public VostroBalEnquiryResponseDto handleBalanceEnquiryException(HttpStatusCodeException ex,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, VostroBalEnquiryRequestDto request) {
         try {
             BalanceResponse response = objectMapper.readValue(ex.getResponseBodyAsString(), BalanceResponse.class);
-            return toBalanceEnquiryResponse(response);
+            return toBalanceEnquiryResponse(response, request);
         }
         catch (JsonProcessingException parseEx) {
             throw new RuntimeException("Unable to parse GCash error response");
         }
     }
 
-    public VostroBalEnquiryResponseDto toBalanceEnquiryResponse(BalanceResponse response) {
+    public VostroBalEnquiryResponseDto toBalanceEnquiryResponse(BalanceResponse response,
+            VostroBalEnquiryRequestDto request) {
         boolean success = GCashUtils.isSuccessful(response);
         RcResponseTemplateEnum template = success ? RcResponseTemplateEnum.GET_BALANCE_SUCCESS
                 : RcResponseTemplateEnum.GET_BALANCE_FAILURE;
@@ -215,7 +217,7 @@ public class GCashMapper {
         VostroBalEnquiryResponseDto responseDto = VostroBalEnquiryResponseDto.builder()
             .balance(success ? response.getBalance().getAvailableBalance() : null)
             .build();
-        GCashUtils.mapToBaseResponse(responseDto, response, template);
+        GCashUtils.mapToBaseResponse(responseDto, response, template, request);
         return responseDto;
     }
 
