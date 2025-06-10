@@ -1,6 +1,8 @@
 package com.pdd.redcurrant.configuration;
 
-import com.pdd.redcurrant.domain.mappers.GCashMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdd.redcurrant.domain.configuration.GCashPropertiesConfig;
+import com.pdd.redcurrant.domain.configuration.GCashResponseCapture;
 import com.pdd.redcurrant.domain.ports.api.GCashServicePort;
 import com.pdd.redcurrant.domain.ports.api.SolaceServicePort;
 import com.pdd.redcurrant.domain.ports.api.StoredProcedureServicePort;
@@ -9,6 +11,8 @@ import com.pdd.redcurrant.domain.registry.ServiceRegistry;
 import com.pdd.redcurrant.domain.service.GCashServiceImpl;
 import com.pdd.redcurrant.domain.service.SolaceServiceImpl;
 import com.pdd.redcurrant.domain.service.StoredProcedureServiceImpl;
+import com.redcurrant.downstream.api.gcash.GcashBalanceApi;
+import com.redcurrant.downstream.api.gcash.GcashRemitApi;
 import jakarta.validation.Validator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,8 +31,11 @@ public class ServiceBeanConfig {
     }
 
     @Bean
-    public GCashServicePort gCashService(GCashMapper gCashMapper) {
-        return new GCashServiceImpl(gCashMapper);
+    public GCashServicePort gCashService(GcashBalanceApi gcashBalanceApi, GcashRemitApi gcashRemitApi,
+            ObjectMapper objectMapper, GCashPropertiesConfig gcashPropertiesConfig,
+            GCashResponseCapture responseCapture) {
+        return new GCashServiceImpl(gcashBalanceApi, gcashRemitApi, objectMapper, gcashPropertiesConfig,
+                responseCapture);
     }
 
 }
