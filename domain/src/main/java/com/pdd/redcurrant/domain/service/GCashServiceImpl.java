@@ -1,7 +1,19 @@
 package com.pdd.redcurrant.domain.service;
 
-import com.pdd.redcurrant.domain.data.RequestDto;
-import com.pdd.redcurrant.domain.data.ResponseDto;
+import com.pdd.redcurrant.domain.data.request.BankRequestDto;
+import com.pdd.redcurrant.domain.data.request.CancelTxnRequestDto;
+import com.pdd.redcurrant.domain.data.request.PartnerRatesRequestDto;
+import com.pdd.redcurrant.domain.data.request.RequestDto;
+import com.pdd.redcurrant.domain.data.request.VostroBalEnquiryRequestDto;
+import com.pdd.redcurrant.domain.data.response.AccountDetailsResponseDto;
+import com.pdd.redcurrant.domain.data.response.BankResponseDto;
+import com.pdd.redcurrant.domain.data.response.CancelTxnResponseDto;
+import com.pdd.redcurrant.domain.data.response.EnquiryResponseDto;
+import com.pdd.redcurrant.domain.data.response.PartnerRatesResponseDto;
+import com.pdd.redcurrant.domain.data.response.PreSendTxnResponseDto;
+import com.pdd.redcurrant.domain.data.response.SendTxnResponseDto;
+import com.pdd.redcurrant.domain.data.response.VostroBalEnquiryResponseDto;
+import com.pdd.redcurrant.domain.mappers.GCashMapper;
 import com.pdd.redcurrant.domain.ports.api.GCashServicePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,42 +22,45 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GCashServiceImpl implements GCashServicePort {
 
-    // private final GCashMapper gCashMapper;
+    private final GCashMapper gCashMapper;
 
     @Override
-    public ResponseDto sendTxn(RequestDto request) {
+    public SendTxnResponseDto sendTxn(RequestDto request) {
         return null;
     }
 
     @Override
-    public ResponseDto enquiryTxn(RequestDto request) {
-        log.info("Method {}, Routing Key {}", request.getMetadata().getMethod(),
-                request.getMetadata().getExchangeRoutingKey());
+    public PreSendTxnResponseDto preSendTxn(RequestDto request) {
         return null;
     }
 
     @Override
-    public ResponseDto vostroBalEnquiry(RequestDto request) {
+    public EnquiryResponseDto enquiryTxn(RequestDto request) {
         return null;
     }
 
     @Override
-    public ResponseDto fetchAcctDtls(RequestDto request) {
+    public VostroBalEnquiryResponseDto vostroBalEnquiry(VostroBalEnquiryRequestDto request) {
         return null;
     }
 
     @Override
-    public ResponseDto bankslist(RequestDto request) {
+    public AccountDetailsResponseDto fetchAcctDtls(RequestDto request) {
         return null;
     }
 
     @Override
-    public ResponseDto getPartnerRates(RequestDto request) {
+    public BankResponseDto bankslist(BankRequestDto request) {
         return null;
     }
 
     @Override
-    public ResponseDto cancelTxn(RequestDto request) {
+    public PartnerRatesResponseDto getPartnerRates(PartnerRatesRequestDto request) {
+        return null;
+    }
+
+    @Override
+    public CancelTxnResponseDto cancelTxn(CancelTxnRequestDto request) {
         return null;
     }
 

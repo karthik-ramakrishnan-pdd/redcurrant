@@ -1,14 +1,17 @@
-package com.pdd.redcurrant.domain.data.common;
+package com.pdd.redcurrant.domain.data.request.common;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.NotNull;
+import com.pdd.redcurrant.domain.annotations.StandardJson;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@StandardJson
 public class MetadataDto {
 
     private String agentCode;
@@ -17,10 +20,8 @@ public class MetadataDto {
 
     private String companyCode;
 
-    @NotNull
     private String method;
 
-    @NotNull
     @JsonAlias("exchangeroutingkey")
     private String exchangeRoutingKey;
 
@@ -35,9 +36,8 @@ public class MetadataDto {
     private OrderingInstitutionDto orderingInstitution;
 
     @Data
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public class OrderingInstitutionDto {
+    @StandardJson
+    public static class OrderingInstitutionDto {
 
         private String name;
 
@@ -48,9 +48,8 @@ public class MetadataDto {
     }
 
     @Data
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public class InstitutionAddressDto {
+    @StandardJson
+    public static class InstitutionAddressDto {
 
         private String countryCode;
 

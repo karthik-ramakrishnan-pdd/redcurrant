@@ -11,20 +11,40 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Service;
 
+/**
+ * Architecture tests for validating structural and layer constraints in the RC Platform
+ * application.
+ * <p>
+ * These tests ensure the application follows domain-driven design and clean architecture
+ * rules, such as package boundaries, class annotations, naming conventions, and layer
+ * dependencies.
+ */
 public class RCPlatformArchitectureTest {
 
+    /**
+     * Base package of the project used to scope ArchUnit rule checks.
+     */
     private final String basePackage = RCPlatformArchitectureTest.class.getPackageName();
 
+    /**
+     * Imported Java classes from the base package for ArchUnit checks.
+     */
     private final JavaClasses importedClasses = new ClassFileImporter().importPackages(basePackage);
 
+    /**
+     * Ensures there are no cyclic dependencies across packages.
+     */
     @Test
     @DisplayName("Arch tests - no package cycles")
     public void testNoPackageCycles() {
         ArchRule rule = SlicesRuleDefinition.slices().matching(basePackage + ".(**)..").should().beFreeOfCycles();
-
         rule.check(importedClasses);
     }
 
+    /**
+     * Ensures that the domain layer does not access the application or infrastructure
+     * layers.
+     */
     @Test
     @DisplayName("Arch tests - domain doesn't access application and infrastructure")
     public void testDomainDoesNotAccessApplicationAndInfrastructure() {
@@ -38,6 +58,10 @@ public class RCPlatformArchitectureTest {
         rule.check(importedClasses);
     }
 
+    /**
+     * Ensures that the application layer does not access the infrastructure layer or SPI
+     * ports.
+     */
     @Test
     @DisplayName("Arch tests - application doesn't access infrastructure")
     public void testApplicationDoesNotAccessInfrastructure() {
@@ -54,6 +78,10 @@ public class RCPlatformArchitectureTest {
         rule.check(importedClasses);
     }
 
+    /**
+     * Ensures that the infrastructure layer does not access the application layer or API
+     * ports.
+     */
     @Test
     @DisplayName("Arch tests - infrastructure doesn't access application")
     public void testInfrastructureDoesNotAccessApplication() {
@@ -66,9 +94,14 @@ public class RCPlatformArchitectureTest {
             .orShould()
             .accessClassesThat()
             .resideInAPackage(basePackage + ".domain.ports.api..");
+
         rule.check(importedClasses);
     }
 
+    /**
+     * Enforces proper layer access rules based on a clean architecture: Controller →
+     * Service → Adapter → Config.
+     */
     @Test
     @DisplayName("Arch tests - layer dependencies are respected")
     public void testAppLayersAreRespected() {
@@ -92,6 +125,10 @@ public class RCPlatformArchitectureTest {
         rule.check(importedClasses);
     }
 
+    /**
+     * Ensures that adapter classes are annotated with {@link Service} and have names
+     * ending in 'Adapter'.
+     */
     @Test
     @DisplayName("Arch tests - adapters should have @Service annotation and end with 'Adapter' suffix")
     public void testAdaptersAnnotationAreRespected() {
@@ -106,6 +143,9 @@ public class RCPlatformArchitectureTest {
         rule.check(importedClasses);
     }
 
+    /**
+     * Ensures that all ports are interfaces and their names end with 'Port'.
+     */
     @Test
     @DisplayName("Arch tests - ports should have a 'Port' suffix")
     public void testPortNamingAreRespected() {
@@ -120,6 +160,9 @@ public class RCPlatformArchitectureTest {
         rule.check(importedClasses);
     }
 
+    /**
+     * Ensures that all Feign clients are placed inside the 'feignclient' package.
+     */
     @Test
     @DisplayName("Arch tests - feign clients should be inside 'feignclient' package")
     public void testFeignClientPackageAreRespected() {
@@ -132,6 +175,10 @@ public class RCPlatformArchitectureTest {
         rule.allowEmptyShould(true).check(importedClasses);
     }
 
+    /**
+     * Ensures that all DTOs are placed in the 'domain.data' package and their names end
+     * with 'Dto'.
+     */
     @Test
     @DisplayName("Arch tests - DTO should have a 'Dto' suffix")
     public void testDtoNamingAreRespected() {
@@ -142,6 +189,44 @@ public class RCPlatformArchitectureTest {
             .areNotAnnotatedWith("lombok.Generated")
             .should()
             .haveSimpleNameEndingWith("Dto");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * Ensures that all annotations are placed only inside the 'application.annotations'
+     * or 'domain.annotations' packages.
+     */
+    @Test
+    @DisplayName("Arch tests - Annotations should only be in 'domain.annotations' package")
+    void annotationsShouldOnlyExistInDomainAnnotationsPackage() {
+        ArchRule rule = ArchRuleDefinition.classes()
+            .that()
+            .areAnnotations()
+            .should()
+            .resideInAPackage(basePackage + ".application.annotations..")
+            .orShould()
+            .resideInAPackage(basePackage + ".domain.annotations..");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * Ensures that annotation class names under the annotation packages do not end with
+     * 'Dto'.
+     */
+    @Test
+    @DisplayName("Arch tests - Annotations in 'domain.annotations' should not end with 'Dto'")
+    void annotationsInDomainAnnotationsShouldNotEndWithDto() {
+        ArchRule rule = ArchRuleDefinition.classes()
+            .that()
+            .resideInAPackage(basePackage + ".application.annotations..")
+            .or()
+            .resideInAPackage(basePackage + ".domain.annotations..")
+            .and()
+            .areAnnotations()
+            .should()
+            .haveSimpleNameNotEndingWith("Dto");
 
         rule.check(importedClasses);
     }

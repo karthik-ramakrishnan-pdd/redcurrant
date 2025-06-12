@@ -1,8 +1,8 @@
 package com.pdd.redcurrant.application.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdd.redcurrant.application.exception.ApplicationExceptionReason;
 import com.pdd.redcurrant.application.exception.ErrorResponseDto;
-import com.pdd.redcurrant.application.exception.WebApplicationExceptionReason;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
  */
 @Component
 @ConditionalOnClass(AuthenticationEntryPoint.class)
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationExceptionHandler implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
@@ -39,14 +39,14 @@ public class AuthenticationExceptionHandler implements AuthenticationEntryPoint 
             final AuthenticationException ex) throws IOException {
         log.warn("Unauthorized access - {}", ex.getMessage());
         final ErrorResponseDto errorResponse = ErrorResponseDto.builder()
-            .code(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getCode())
-            .message(String.format(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getMessage(), ex.getMessage()))
-            .status(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getHttpStatus())
+            .code(ApplicationExceptionReason.AUTHENTICATION_ERROR.getCode())
+            .message(String.format(ApplicationExceptionReason.AUTHENTICATION_ERROR.getMessage(), ex.getMessage()))
+            .status(ApplicationExceptionReason.AUTHENTICATION_ERROR.getHttpStatus())
             .timestamp(LocalDateTime.now())
             .build();
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setStatus(WebApplicationExceptionReason.AUTHENTICATION_ERROR.getHttpStatus().getValue());
+        response.setStatus(ApplicationExceptionReason.AUTHENTICATION_ERROR.getHttpStatus().getValue());
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(response.getOutputStream(), errorResponse);
         response.getOutputStream().flush();
     }

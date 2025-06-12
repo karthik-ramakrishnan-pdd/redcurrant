@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StoredProcedureJdbcAdapter implements StoredProcedurePort {
 
     private final JdbcTemplate jdbcTemplate;

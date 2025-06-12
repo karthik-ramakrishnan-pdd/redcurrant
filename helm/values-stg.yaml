@@ -20,10 +20,6 @@ readinessProbe:
 ENV:
   - name: SPRING_PROFILES_ACTIVE
     value: staging
-  - name: RC_IDM_URL
-    value: http://idm.cbaas-stg-wht.svc.cluster.local:13250
-  - name: RC_SWAGGER_IDM_URL
-    value: https://stg.digitnine.com/idm/oauth/token
   - name: DB_URL
     value: 'jdbc:mysql://mysql-db.cbaas-stg-blk.svc.cluster.local:3306'
   - name: DB_USERNAME

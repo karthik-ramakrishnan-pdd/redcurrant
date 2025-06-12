@@ -20,10 +20,6 @@ readinessProbe:
 ENV:
   - name: SPRING_PROFILES_ACTIVE
     value: production
-  - name: RC_IDM_URL
-    value: http://idm.cbaas-prd-wht.svc.cluster.local:13250
-  - name: RC_SWAGGER_IDM_URL
-    value: https://digitnine.com/idm/oauth/token
   - name: DB_URL
     value: 'jdbc:mysql://cbaas-db-prd.postgres.database.azure.com:3306'
   - name: DB_USERNAME

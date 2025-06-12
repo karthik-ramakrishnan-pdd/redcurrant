@@ -6,6 +6,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PartnerConstants {
 
-    public static final String PARTNER_GCASH = "GCASH";
+    public static final String PARTNER_GCASH = "GCASHHH";
 
 }

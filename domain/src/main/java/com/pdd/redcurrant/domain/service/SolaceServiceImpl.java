@@ -1,37 +1,44 @@
 package com.pdd.redcurrant.domain.service;
 
-import com.pdd.redcurrant.domain.data.MockDto;
-import com.pdd.redcurrant.domain.data.RequestDto;
+import com.pdd.redcurrant.domain.data.request.BaseRequestDto;
+import com.pdd.redcurrant.domain.exception.BusinessException;
+import com.pdd.redcurrant.domain.ports.api.ServiceRegistryPort;
 import com.pdd.redcurrant.domain.ports.api.SolaceServicePort;
-import com.pdd.redcurrant.domain.registry.ServicePortRegistry;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Slf4j
 public class SolaceServiceImpl implements SolaceServicePort {
 
-    private final ServicePortRegistry servicePortRegistry;
+    private final ServiceRegistryPort serviceRegistry;
+
+    private final Validator validator;
 
     @Override
-    public void process(String message) {
-        var request = MapperUtils.convert(message, RequestDto.class);
+    public Object process(String message) {
+        var request = MapperUtils.convert(message, BaseRequestDto.class);
 
-        if (request == null || request.getMetadata() == null || request.getMetadata().getMethod() == null
-                || request.getMetadata().getExchangeRoutingKey() == null) {
-            throw new IllegalArgumentException("Missing Mandatory parameters");
+        // Validate using javax.validation.Validator
+        Set<ConstraintViolation<BaseRequestDto>> violations = validator.validate(request);
+
+        if (!violations.isEmpty()) {
+            StringBuilder errorMessage = new StringBuilder("Validation failed: ");
+            for (ConstraintViolation<BaseRequestDto> violation : violations) {
+                errorMessage.append(violation.getPropertyPath())
+                    .append(" ")
+                    .append(violation.getMessage())
+                    .append("; ");
+            }
+            return BusinessException.VALIDATION_FAILED.toResponse(errorMessage.toString(), request.getReqId());
         }
 
-        servicePortRegistry.invokeMethod(request.getMetadata().getExchangeRoutingKey(),
-                request.getMetadata().getMethod(), request);
-    }
-
-    @Override
-    public MockDto processAndReturn(String message) {
-        var test = MapperUtils.convert(message, MockDto.class);
-        test.setTspId(test.getTspId().toUpperCase());
-        return test;
+        return serviceRegistry.invoke(request.getRoutingKey(), request.getMethod(), message);
     }
 
 }

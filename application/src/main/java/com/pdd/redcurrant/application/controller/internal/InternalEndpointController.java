@@ -1,11 +1,10 @@
 package com.pdd.redcurrant.application.controller.internal;
 
 import com.pdd.redcurrant.application.annotations.ExcludeFromJacocoGeneratedReport;
-import com.pdd.redcurrant.domain.data.MockDto;
-import com.pdd.redcurrant.domain.data.RequestDto;
 import com.pdd.redcurrant.domain.ports.api.StoredProcedureServicePort;
 import com.pdd.redcurrant.domain.utils.MapperUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.Session;
 import jakarta.jms.TextMessage;
@@ -25,6 +24,16 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * This controller is intended **strictly for internal testing and validation** purposes
+ * within the Redcurrant project.
+ * <p>
+ * It contains mock integrations for: - Executing stored procedures directly - Sending
+ * messages over Solace (sync/async)
+ * <p>
+ * ⚠️ **Note:** These are mock implementations to assist development and testing. Actual
+ * logic should be implemented in services that consume the Redcurrant library.
+ */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "v1/internal")
@@ -37,55 +46,71 @@ public class InternalEndpointController {
 
     private final JmsTemplate jmsTemplate;
 
-    @Value("${solace.topic.test.sync}")
-    private String topicSync;
+    @Value("${solace.gateway.sync.name}")
+    private String queueName;
 
-    @Value("${solace.topic.test.async}")
-    private String topicAsync;
+    @Value("${solace.gateway.async.topic}")
+    private String topicId;
 
+    /**
+     * Fetches the result of a stored procedure with optional parameters.
+     * @param name The name of the stored procedure to execute.
+     * @param params Optional list of parameters for the procedure.
+     * @return The stringified result of the stored procedure.
+     */
     @GetMapping(path = "procedure/{name}")
     public String fetch(@PathVariable(name = "name") String name,
             @RequestParam(name = "params", required = false) List<String> params) {
-        return storedProcedureService.fetch(name, params.toArray());
+        return storedProcedureService.fetch(name, (params != null) ? params.toArray() : new Object[0]);
     }
 
+    /**
+     * Sends a mock message asynchronously over Solace for internal testing.
+     * @param request The mock request payload to send.
+     */
     @PostMapping(path = "solace/async")
-    public void testAsync(@RequestBody RequestDto request) {
+    public void testAsync(@RequestBody String request) {
         try {
-            String message = MapperUtils.toString(request);
-            jmsTemplate.convertAndSend(topicAsync, message);
-            log.info("Published: {}", message);
+            MapperUtils.isValid(request);
+            jmsTemplate.convertAndSend(topicId, request);
+            log.info("Published: {}", request);
         }
         catch (Exception ex) {
+            log.error("Failed to publish async message: {}", ex.getMessage());
             throw new RuntimeException(ex);
         }
     }
 
+    /**
+     * Sends a mock message synchronously over Solace and waits for a response.
+     * @param request The mock request payload to send.
+     * @return The response DTO received from the Solace queue (or null if none).
+     */
     @PostMapping(path = "solace/sync")
-    public MockDto testSync(@RequestBody MockDto request) {
+    public String testSync(@RequestBody String request) {
         try {
-            String message = MapperUtils.toString(request);
-            log.info("Publishing message: {}", message);
+            MapperUtils.isValid(request);
+            log.info("Publishing message: {}", request);
 
-            // Send the message and wait for the response
-            Message responseMessage = jmsTemplate.sendAndReceive(topicSync, (Session session) -> {
-                TextMessage textMessage = session.createTextMessage(message);
-                // Set preferred correlation ID
+            // Send the message and wait for a response
+            Message responseMessage = jmsTemplate.sendAndReceive(queueName, (Session session) -> {
+                TextMessage textMessage = session.createTextMessage(request);
                 textMessage.setJMSCorrelationID(UUID.randomUUID().toString());
                 return textMessage;
             });
-            log.info("Received response for publishing message: {}", message);
 
-            // Check if the response message is not null and return its body
+            log.info("Received response for publishing message: {}", request);
+
             if (responseMessage instanceof TextMessage textMessage) {
-                return MapperUtils.convert(textMessage, MockDto.class);
+                return textMessage.getText();
             }
             else {
-                log.warn("No response received for message: {}", message);
-                return null; // Handle null case appropriately
+                log.warn("No response received for message: {}", request);
+                return null;
             }
         }
-        catch (JmsException ex) {
+        catch (JmsException | JMSException ex) {
+            log.error("Failed to publish sync message: {}", ex.getMessage());
             throw new RuntimeException(ex);
         }
     }
