@@ -46,7 +46,7 @@ public class InternalEndpointController {
 
     private final JmsTemplate jmsTemplate;
 
-    @Value("${solace.gateway.sync.name}")
+    @Value("${solace.gateway.sync.queue}")
     private String queueName;
 
     @Value("${solace.gateway.async.topic}")
